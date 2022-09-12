@@ -1,3 +1,9 @@
+import random
+import time
+
+import sympy
+
+
 def ExtendedEuclideanAlgorithm(a, b):
     if a == 0:
         return b, 0, 1
@@ -16,12 +22,20 @@ def GCD(a, b):
 
 
 def BinaryExponentiation(a: int, b: int):
+    """
+    This is my own implementation of Binary Exponentiation.
+    However, Python is very bad at recursion, and the native
+    implementation of pow(a, b) is more effective due to
+    RAM/Memory concern.
+    :param a:
+    :param b:
+    :return:
+    """
     if b == 0:
         return 1
-
     a_prime = a * BinaryExponentiation(a, b - 1)
 
-    return a_prime
+    return int(a_prime)
 
 
 def VerifyECA(a, b, u, v):
@@ -47,6 +61,45 @@ def ReduceToEchelonForm(matrix: list, modulus: int):
             print(matrix)
 
 
+def JacobiSymbol(alpha: int, n: int) -> int:
+    # alpha should be int, and n should be odd positive int
+    # assert (n > 0 and n % 2 == 1)
+    alpha = pow(alpha, 1, n)
+    t = 1
+    while alpha != 0:
+        while alpha % 2 == 0:
+            alpha = alpha / 2
+            r = n % 8
+            if r == 3 or r == 5:
+                t = -t
+        alpha, n = n, alpha
+        if alpha % 4 == 3 and n % 4 == 3:
+            t = -t
+        alpha = alpha % n
+    if n == 1:
+        return t
+    else:
+        return 0
+
+
+def Solovay_Strassen_Test(n, k=1) -> str:
+    """
+    :input: n, a value to test primality
+    :out: composite if test fails, probably prime else
+    :rtype: str
+    """
+    # check n odd prime > 1
+    import math
+    assert (n > 1)
+    for i in range(k):
+        a = random.randint(2, int(math.sqrt(n - 1)))  # random is ge && le
+        x = JacobiSymbol(a, n)
+        if (x == 0) or (pow(a, (n - 1) // 2) != x % n):
+            # if (x == 0) or (pow(a, (n - 1) // 2, n) != x % n):
+            return "Composite"
+    return "Probably Prime"
+
+
 if __name__ == '__main__':
     matrix = [
         [1, -2, -2, -2, -1, 2],
@@ -66,9 +119,15 @@ if __name__ == '__main__':
     # a = 620709603821307061
     # b = 390156375246520685
     # R, u, v = ExtendedEuclideanAlgorithm(a, b)
-    # print(f"Extended Euc. Algorithm of\nA  == {a}\nB  == {b}\GCD is {R}")    
+    # print(f"Extended Euc. Algorithm of\nA  == {a}\nB  == {b}\GCD is {R}")
     # print(f"Coefficient for bigger int (u) u == {u}\nCoefficient for smaller int (v) == {v}")
     # print(BinaryExponentiation(2, 4))
     # print(5 // 2)
     # ReduceToEchelonForm(matrix=test_matrix, modulus=TEST_MODULO)
-    print(ExtendedEuclideanAlgorithm(2, 15))
+    # print(ExtendedEuclideanAlgorithm(2, 15))
+
+    # var_1 = -776439811
+    # var_2 = 50556018318800449023
+    # print(JacobiSymbol(var_1, var_2))
+    print(sympy.isprime(2 ** 127 - 1))
+    print(Solovay_Strassen_Test((2 ** 127) - 1))
