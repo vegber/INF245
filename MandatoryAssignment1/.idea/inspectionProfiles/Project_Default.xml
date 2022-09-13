@@ -1,0 +1,84 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="CssUnknownProperty" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myCustomPropertiesEnabled" value="true" />
+      <option name="myIgnoreVendorSpecificProperties" value="false" />
+      <option name="myCustomPropertiesList">
+        <value>
+          <list size="7">
+            <item index="0" class="java.lang.String" itemvalue="mso-ascii-theme-font" />
+            <item index="1" class="java.lang.String" itemvalue="mso-fareast-theme-font" />
+            <item index="2" class="java.lang.String" itemvalue="mso-hansi-theme-font" />
+            <item index="3" class="java.lang.String" itemvalue="mso-bidi-theme-font" />
+            <item index="4" class="java.lang.String" itemvalue="mso-themecolor" />
+            <item index="5" class="java.lang.String" itemvalue="mso-themeshade" />
+            <item index="6" class="java.lang.String" itemvalue="enable-background" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="86" name="Python" />
+      </Languages>
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="4">
+            <item index="0" class="java.lang.String" itemvalue="cssstyle" />
+            <item index="1" class="java.lang.String" itemvalue="src" />
+            <item index="2" class="java.lang.String" itemvalue="method" />
+            <item index="3" class="java.lang.String" itemvalue="alt" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="8">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="div" />
+            <item index="7" class="java.lang.String" itemvalue="tr" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyChainedComparisonsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoreConstantInTheMiddle" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N802" />
+          <option value="N806" />
+          <option value="N803" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="set.__getitem__" />
+          <option value="int.*" />
+          <option value="src.firstwebsite.urls.*" />
+          <option value="str.append" />
+          <option value="tuple.group" />
+          <option value="Labs.LAB1.task2.task1" />
+          <option value="operators" />
+          <option value="oblig1.Veke36.eight_game_node.EightGameNode.__getitem__" />
+          <option value="object.__getitem__" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

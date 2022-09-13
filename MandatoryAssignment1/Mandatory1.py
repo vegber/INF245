@@ -1,5 +1,5 @@
 import random
-import time
+from decimal import Decimal, localcontext
 
 import sympy
 
@@ -61,6 +61,19 @@ def ReduceToEchelonForm(matrix: list, modulus: int):
             print(matrix)
 
 
+# modulo function to perform binary
+# exponentiation
+def modulo(base, exponent, mod):
+    x = 1
+    y = base
+    while exponent > 0:
+        if exponent % 2 == 1:
+            x = (x * y) % mod
+        y = (y * y) % mod
+        exponent = exponent // 2
+    return x % mod
+
+
 def JacobiSymbol(alpha: int, n: int) -> int:
     # alpha should be int, and n should be odd positive int
     # assert (n > 0 and n % 2 == 1)
@@ -68,7 +81,7 @@ def JacobiSymbol(alpha: int, n: int) -> int:
     t = 1
     while alpha != 0:
         while alpha % 2 == 0:
-            alpha = alpha / 2
+            alpha = alpha // 2
             r = n % 8
             if r == 3 or r == 5:
                 t = -t
@@ -76,6 +89,9 @@ def JacobiSymbol(alpha: int, n: int) -> int:
         if alpha % 4 == 3 and n % 4 == 3:
             t = -t
         alpha = alpha % n
+
+        if alpha > n // 2:
+            alpha = alpha - n
     if n == 1:
         return t
     else:
@@ -91,10 +107,13 @@ def Solovay_Strassen_Test(n, k=1) -> str:
     # check n odd prime > 1
     import math
     assert (n > 1)
+
     for i in range(k):
         a = random.randint(2, int(math.sqrt(n - 1)))  # random is ge && le
         x = JacobiSymbol(a, n)
-        if (x == 0) or (pow(a, (n - 1) // 2) != x % n):
+        print(modulo(a, (n - 1) / 2, n))
+        mod = a ** ((n - 1) / 2)
+        if (x == 0) or mod != modulo(a, (n - 1) / 2, n):
             # if (x == 0) or (pow(a, (n - 1) // 2, n) != x % n):
             return "Composite"
     return "Probably Prime"
@@ -130,4 +149,4 @@ if __name__ == '__main__':
     # var_2 = 50556018318800449023
     # print(JacobiSymbol(var_1, var_2))
     print(sympy.isprime(2 ** 127 - 1))
-    print(Solovay_Strassen_Test((2 ** 127) - 1))
+    print(Solovay_Strassen_Test(51))
