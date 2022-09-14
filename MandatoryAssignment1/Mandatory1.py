@@ -1,7 +1,5 @@
-import math
 import random
 from test import calculateJacobian as JacobiSymbol
-import sympy
 
 
 def ExtendedEuclideanAlgorithm(a, b):
@@ -228,7 +226,8 @@ if __name__ == '__main__':
 
     M = volume2(matrix, MODULO)
 
-    for x in range(len(M)):
-        for y in range(len(M[x])):
-            print(M[x][y], end="\t\t\t\t")
-        print("\n")
+    s = [[str(e) for e in row] for row in M]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print('\n'.join(table))
