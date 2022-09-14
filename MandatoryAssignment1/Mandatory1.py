@@ -1,6 +1,6 @@
+import math
 import random
-from decimal import Decimal, localcontext
-
+from test import calculateJacobian as JacobiSymbol
 import sympy
 
 
@@ -38,7 +38,34 @@ def BinaryExponentiation(a: int, b: int):
     return int(a_prime)
 
 
+def BinaryExponentiationWithoutRecursion(a: int, b: int, mod: int):
+    """
+    Modulo function to perform binary exponentiation - without recursion
+    :param a:
+    :param b:
+    :param mod:
+    :return:
+    """
+    temp, base_number = 1, a
+    while b > 0:  # exponent larger than zero
+        if b % 2 == 1:  # if not even
+            temp = (temp * base_number) % mod  # pow(x*y, 1, mod)
+        base_number, b = (base_number * base_number) % mod, b // 2
+    return temp % mod
+
+
 def VerifyECA(a, b, u, v):
+    """
+    Verification method to check that:
+        For a ≥ b > 0, Extended euclidean alg.
+        should find integers u & v
+        such that ua + vb = gcd(a, b)
+    :param a:
+    :param b:
+    :param u:
+    :param v:
+    :return:
+    """
     return GCD(a, b) == u * a + v * b
 
 
@@ -61,20 +88,7 @@ def ReduceToEchelonForm(matrix: list, modulus: int):
             print(matrix)
 
 
-# modulo function to perform binary
-# exponentiation
-def modulo(base, exponent, mod):
-    x = 1
-    y = base
-    while exponent > 0:
-        if exponent % 2 == 1:
-            x = (x * y) % mod
-        y = (y * y) % mod
-        exponent = exponent // 2
-    return x % mod
-
-
-def JacobiSymbol(alpha: int, n: int) -> int:
+"""def JacobiSymbol(alpha: int, n: int) -> int:
     # alpha should be int, and n should be odd positive int
     # assert (n > 0 and n % 2 == 1)
     alpha = pow(alpha, 1, n)
@@ -90,12 +104,12 @@ def JacobiSymbol(alpha: int, n: int) -> int:
             t = -t
         alpha = alpha % n
 
-        if alpha > n // 2:
-            alpha = alpha - n
+        # if alpha > n // 2:
+        #     alpha = alpha - n
     if n == 1:
         return t
     else:
-        return 0
+        return 0"""
 
 
 def Solovay_Strassen_Test(n, k=1) -> str:
@@ -105,16 +119,20 @@ def Solovay_Strassen_Test(n, k=1) -> str:
     :rtype: str
     """
     # check n odd prime > 1
-    import math
     assert (n > 1)
-
+    import math
     for i in range(k):
-        a = random.randint(2, int(math.sqrt(n - 1)))  # random is ge && le
-        x = JacobiSymbol(a, n)
-        print(modulo(a, (n - 1) / 2, n))
-        mod = a ** ((n - 1) / 2)
-        if (x == 0) or mod != modulo(a, (n - 1) / 2, n):
-            # if (x == 0) or (pow(a, (n - 1) // 2, n) != x % n):
+        # Solovay strassen test:
+        # 1) gcd(a, n) != 1 => composite
+        # 2) a ** (n-1) / 2 congruent with jacobi(a/n) mod n
+        a = random.randint(2, int(math.sqrt(n)))  # random is ge && le
+        if GCD(a, n) != 1:
+            print(f"gcd not != 1")
+            return "Composite"
+        x = (JacobiSymbol(a, n))
+        # a ** ((n - 1) / 2) can be re - written to our bin. exp method as:
+        mod = BinaryExponentiationWithoutRecursion(a, (n - 1) / 2, n)
+        if (x == 0) or mod != x:
             return "Composite"
     return "Probably Prime"
 
@@ -148,5 +166,5 @@ if __name__ == '__main__':
     # var_1 = -776439811
     # var_2 = 50556018318800449023
     # print(JacobiSymbol(var_1, var_2))
-    print(sympy.isprime(2 ** 127 - 1))
-    print(Solovay_Strassen_Test(51))
+    # print(sympy.isprime(2 ** 127 - 1))
+    print(Solovay_Strassen_Test(170141183460469231731687303715884105727, 10))
