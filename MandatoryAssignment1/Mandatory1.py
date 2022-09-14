@@ -1,5 +1,8 @@
 import random
+from typing import Type
+
 from test import calculateJacobian as JacobiSymbol
+import copy
 
 
 def ExtendedEuclideanAlgorithm(a, b):
@@ -67,80 +70,36 @@ def VerifyECA(a, b, u, v):
     return GCD(a, b) == u * a + v * b
 
 
-def ReduceToEchelonForm(matrix: list, modulus: int):
-    r, t = 0, 0
-    for j in range(len(matrix) - 1):  #
-        t = t + 1
-        for i in range(len(matrix[j]) - 1):
-            r = r + 1
-            b = matrix[j][i]
-            z = 0
-            if b % modulus != 0:
-                d = GCD(b, modulus)
-                if d > 1:
-                    # n = d * (n/d) => terminate
-                    return
-                if d == 1:
-                    z = pow(b, -1, modulus)
-                # swap Mr+1 <=> Mi , Mr+1 <= r* Mr+1
-                matrix[j][r] = z * matrix[j][r]
-                matrix[j][r] = matrix[i]
-
-                # matrix[r] = [(x * matrix[r]) for x in matrix[r]]
-
-            # gå gjennom rad
-            # Mu =
-            continue
-        continue
-
-
-def volume2(matrix: list, modulus: int):
-    # A is concat of matrix A and vector a
+def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
+    # A is concat of matrix A and vector
     # Our matrix M = m x (t + 1)
-
-    M = matrix
-    col_length, rad_length, pivot_counter = 0, 0, 0
-
-    while rad_length < (len(M[0]) - 1) and col_length < len(M):
+    MATRIX = copy.deepcopy(m)
+    c, r = 0, 0
+    while r != len(MATRIX):
         # find pivot el
-        Pivot_elem = M[pivot_counter][rad_length]
+        Mij = MATRIX[r][c]
         z = 0
-        if Pivot_elem % modulus != 0:
-            # Reduce
-            d = GCD(Pivot_elem, modulus)
-            if d > 1: return "Does not work!"
-            if d == 1: z = pow(Pivot_elem, -1, modulus)
-            M[pivot_counter] = [M[pivot_counter][x] * z % modulus for x in range(len(matrix[0]))]
+        d = GCD(Mij, modulus)
+        if d > 1:  # if GCD(Mij, N) > 1, terminate
+            return list
+        if d == 1:  # if GCD is one, find Z * b congruent with 1 mod N
+            z = pow(Mij, -1, modulus)
+            # apply z to all elements of row
+            MATRIX[r] = [MATRIX[r][x] * z % modulus for x in range(len(m[0]))]
 
-            # make zero space under pivot element
-
-            for a in range(pivot_counter + 1, len(M)):
-                row = M[a]
-                special_element = M[a][pivot_counter] % modulus
-                M[a] = [(row[x] - special_element * M[pivot_counter][x]) % modulus for x in range(len(matrix[0]))]
-        else:
+        if Mij % modulus == 0:
             # switch
-            for a in range(pivot_counter + 1, len(M)):
-                row = M[a]
-                if row[Pivot_elem] != 0 % 5:
-                    M[pivot_counter], M[pivot_counter + 1] = M[pivot_counter + 1], M[pivot_counter]
-
+            for x in range(r + 1, len(MATRIX)):
+                if MATRIX[x][Mij] != 0 % modulus:
+                    MATRIX[r], MATRIX[r + 1] = MATRIX[r + 1], MATRIX[r]
                 # already switched, now reduce
-                if d == 1: z = pow(Pivot_elem, -1, modulus)
-                M[pivot_counter] = [M[pivot_counter][x] * z % modulus for x in range(len(matrix[0]))]
 
-                # make zero space under pivot element
-
-                for a in range(pivot_counter + 1, len(M)):
-                    row = M[a]
-                    special_element = M[a][pivot_counter] % modulus
-                    M[a] = [(row[x] - special_element * M[pivot_counter][x]) % modulus for x in range(len(matrix[0]))]
-
-        Pivot_elem += 1
-        rad_length += 1
-        col_length += 1
-        pivot_counter += 1
-    return M
+        # make zero space under pivot element
+        for e in range(r + 1, len(MATRIX)):
+            # apply zero element mult. to all elements of row r + 1
+            MATRIX[e] = [(MATRIX[e][x] - MATRIX[e][r] % modulus * MATRIX[r][x]) % modulus for x in range(len(m[0]))]
+        Mij, c, r = Mij + 1, c + 1, r + 1
+    return MATRIX
 
 
 """def JacobiSymbol(alpha: int, n: int) -> int:
@@ -224,7 +183,7 @@ if __name__ == '__main__':
     # print(sympy.isprime(2 ** 127 - 1))
     # print(Solovay_Strassen_Test(170141183460469231731687303715884105727, 10))
 
-    M = volume2(matrix, MODULO)
+    M = RowReduceEchelonForm(matrix, MODULO)
 
     s = [[str(e) for e in row] for row in M]
     lens = [max(map(len, col)) for col in zip(*s)]
