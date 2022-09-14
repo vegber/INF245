@@ -101,7 +101,8 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
         Mij, c, r = Mij + 1, c + 1, r + 1
     return MATRIX
 
-
+# todo
+# investigate what is wrong with this code:
 """def JacobiSymbol(alpha: int, n: int) -> int:
     # alpha should be int, and n should be odd positive int
     # assert (n > 0 and n % 2 == 1)
