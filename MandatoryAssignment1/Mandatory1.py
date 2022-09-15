@@ -1,25 +1,18 @@
+import copy
 import random
 from typing import Type
-
-from test import calculateJacobian as JacobiSymbol
-import copy
 
 
 def ExtendedEuclideanAlgorithm(a, b):
     if a == 0:
         return b, 0, 1
-
-    gcd, c_1, c_2 = ExtendedEuclideanAlgorithm(b % a, a)
-    c1_prime = c_2 - (b // a) * c_1
-    c_2_prime = c_1
-    return gcd, c1_prime, c_2_prime
+    gcd, u_1, v_1 = ExtendedEuclideanAlgorithm(b % a, a)
+    return gcd, v_1 - (b // a) * u_1, u_1
 
 
 def GCD(a, b):
-    if b == 0:
-        return abs(a)
-    else:
-        return GCD(b, a % b)
+    if b == 0: return abs(a)
+    else: return GCD(b, a % b)
 
 
 def BinaryExponentiation(a: int, b: int):
@@ -28,25 +21,15 @@ def BinaryExponentiation(a: int, b: int):
     However, Python is very bad at recursion, and the native
     implementation of pow(a, b) is more effective due to
     RAM/Memory concern.
-    :param a:
-    :param b:
-    :return:
     """
     if b == 0:
         return 1
     a_prime = a * BinaryExponentiation(a, b - 1)
-
     return int(a_prime)
 
 
 def BinaryExponentiationWithoutRecursion(a: int, b: int, mod: int):
-    """
-    Modulo function to perform binary exponentiation - without recursion
-    :param a:
-    :param b:
-    :param mod:
-    :return:
-    """
+    # Modulo function to perform binary exponentiation - without recursion
     temp, base_number = 1, a
     while b > 0:  # exponent larger than zero
         if b % 2 == 1:  # if not even
@@ -55,17 +38,12 @@ def BinaryExponentiationWithoutRecursion(a: int, b: int, mod: int):
     return temp % mod
 
 
-def VerifyECA(a, b, u, v):
+def VerifyECA(a, b, u, v) -> bool:
     """
     Verification method to check that:
         For a ≥ b > 0, Extended euclidean alg.
         should find integers u & v
         such that ua + vb = gcd(a, b)
-    :param a:
-    :param b:
-    :param u:
-    :param v:
-    :return:
     """
     return GCD(a, b) == u * a + v * b
 
@@ -86,48 +64,62 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
             z = pow(Mij, -1, modulus)
             # apply z to all elements of row
             MATRIX[r] = [MATRIX[r][x] * z % modulus for x in range(len(m[0]))]
-
+        # pivot element completely divides modulo
         if Mij % modulus == 0:
-            # switch
+            # switch rows r + 1
             for x in range(r + 1, len(MATRIX)):
                 if MATRIX[x][Mij] != 0 % modulus:
                     MATRIX[r], MATRIX[r + 1] = MATRIX[r + 1], MATRIX[r]
                 # already switched, now reduce
 
-        # make zero space under pivot element
+        # make zero space for r + 1 under pivot element
         for e in range(r + 1, len(MATRIX)):
             # apply zero element mult. to all elements of row r + 1
             MATRIX[e] = [(MATRIX[e][x] - MATRIX[e][r] % modulus * MATRIX[r][x]) % modulus for x in range(len(m[0]))]
         Mij, c, r = Mij + 1, c + 1, r + 1
     return MATRIX
 
+
 # todo
 # investigate what is wrong with this code:
-"""def JacobiSymbol(alpha: int, n: int) -> int:
-    # alpha should be int, and n should be odd positive int
-    # assert (n > 0 and n % 2 == 1)
-    alpha = pow(alpha, 1, n)
-    t = 1
-    while alpha != 0:
-        while alpha % 2 == 0:
-            alpha = alpha // 2
-            r = n % 8
-            if r == 3 or r == 5:
-                t = -t
-        alpha, n = n, alpha
-        if alpha % 4 == 3 and n % 4 == 3:
-            t = -t
-        alpha = alpha % n
+def JacobiSymbol(a, n, d=1):
+    if a == 0:
+        return 0  # (0/n) = 0
+    if a == 1:
+        return d  # (1/n) = 1
 
-        # if alpha > n // 2:
-        #     alpha = alpha - n
+    if a < 0:
+        # property of Jacobi
+        # (a/n) = (-a/n)*(-1/n)
+        a = -a
+        if n % 4 == 3:
+            # (-1/n) = -1 if n = 3 (mod 4)
+            d = -d
+
+    while a:
+        if a < 0:
+            # (a/n) = (-a/n)*(-1/n)
+            a = -a
+            if n % 4 == 3:
+                # (-1/n) = -1 if n = 3 (mod 4)
+                d = -d
+        while a % 2 == 0:
+            a = a // 2
+            if n % 8 == 3 or n % 8 == 5:
+                d = -d
+        # swap
+        a, n = n, a
+        if a % 4 == 3 and n % 4 == 3:
+            d = -d
+        a = a % n
+        if a > n // 2:
+            a = a - n
     if n == 1:
-        return t
-    else:
-        return 0"""
+        return d
+    return 0
 
 
-def Solovay_Strassen_Test(n, k=1) -> str:
+def Solovay_Strassen_Test(n, k=20) -> str:
     """
     :input: n, a value to test primality
     :out: composite if test fails, probably prime else
@@ -135,18 +127,16 @@ def Solovay_Strassen_Test(n, k=1) -> str:
     """
     # check n odd prime > 1
     assert (n > 1)
-    import math
     for i in range(k):
         # Solovay strassen test:
         # 1) gcd(a, n) != 1 => composite
         # 2) a ** (n-1) / 2 congruent with jacobi(a/n) mod n
-        a = random.randint(2, int(math.sqrt(n)))  # random is ge && le
+        a = random.randint(2, n)  # random is ge && le
         if GCD(a, n) != 1:
-            print(f"gcd not != 1")
             return "Composite"
-        x = (JacobiSymbol(a, n))
+        x = (n + JacobiSymbol(a, n)) % n
         # a ** ((n - 1) / 2) can be re - written to our bin. exp method as:
-        mod = BinaryExponentiationWithoutRecursion(a, (n - 1) / 2, n)
+        mod = BinaryExponentiationWithoutRecursion(a, (n - 1) // 2, n)
         if (x == 0) or mod != x:
             return "Composite"
     return "Probably Prime"
@@ -180,14 +170,20 @@ if __name__ == '__main__':
 
     # var_1 = -776439811
     # var_2 = 50556018318800449023
-    # print(JacobiSymbol(var_1, var_2))
-    # print(sympy.isprime(2 ** 127 - 1))
-    # print(Solovay_Strassen_Test(170141183460469231731687303715884105727, 10))
+    # print(f"Jacobi of {var_1} and {var_2} is: {JacobiSymbol(var_1, var_2)}")
+    print(Solovay_Strassen_Test((2 ** 127) - 1, 20))
+    # a = 620709603821307061
+    # b = 390156375246520685
+# 
+# k, u, v = (ExtendedEuclideanAlgorithm(620709603821307061, 390156375246520685))
+# print(f"EEA: {k} u is {u} v is {v}")
+# print(f"Does u * {a} + v * {b} = GCD(a, b)?: {VerifyECA(a, b, u, v)}")
+# M = RowReduceEchelonForm(matrix, MODULO)
 
-    M = RowReduceEchelonForm(matrix, MODULO)
+# s = [[str(e) for e in row] for row in M]
+# lens = [max(map(len, col)) for col in zip(*s)]
+# fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+# table = [fmt.format(*row) for row in s]
+# print('\n'.join(table))
 
-    s = [[str(e) for e in row] for row in M]
-    lens = [max(map(len, col)) for col in zip(*s)]
-    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-    table = [fmt.format(*row) for row in s]
-    print('\n'.join(table))
+# print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
