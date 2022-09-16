@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 from typing import Type
 
@@ -11,8 +12,10 @@ def ExtendedEuclideanAlgorithm(a, b):
 
 
 def GCD(a, b):
-    if b == 0: return abs(a)
-    else: return GCD(b, a % b)
+    if b == 0:
+        return abs(a)
+    else:
+        return GCD(b, a % b)
 
 
 def BinaryExponentiation(a: int, b: int):
@@ -52,11 +55,10 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
     # A is concat of matrix A and vector
     # Our matrix M = m x (t + 1)
     MATRIX = copy.deepcopy(m)
-    c, r = 0, 0
+    r = 0
     while r != len(MATRIX):
         # find pivot el
-        Mij = MATRIX[r][c]
-        z = 0
+        Mij = MATRIX[r][r]
         d = GCD(Mij, modulus)
         if d > 1:  # if GCD(Mij, N) > 1, terminate
             return list
@@ -76,12 +78,29 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
         for e in range(r + 1, len(MATRIX)):
             # apply zero element mult. to all elements of row r + 1
             MATRIX[e] = [(MATRIX[e][x] - MATRIX[e][r] % modulus * MATRIX[r][x]) % modulus for x in range(len(m[0]))]
-        Mij, c, r = Mij + 1, c + 1, r + 1
+        # if r = m, terminate, else r <- r+1 and
+        Mij, r = Mij + 1, r + 1
     return MATRIX
 
 
-# todo
-# investigate what is wrong with this code:
+def SolveSystem(m: list, modulus: int):
+    piv, sol = 0, []
+    for j in range(len(m)):
+        piv += 1
+        temp = []
+        for i in range(piv, len(M[j]) - 1):
+            temp.append(['x%d' % (i + 1), ((-1) * i) % modulus])
+        temp.append(['', M[j][-1]])
+        sol.append(temp)
+
+    for i, e in enumerate(sol):
+        print(f"x{i + 1} = {' *'.join([' %s (%d)' % (x[0], x[1]) for x in e])}")
+    print("\n")
+    for i, e in enumerate(sol):
+        numb = [x[1] for x in e]
+        print(f"x{i + 1} = {math.prod(numb) % modulus}")
+
+
 def JacobiSymbol(a, n, d=1):
     if a == 0:
         return 0  # (0/n) = 0
@@ -158,32 +177,32 @@ if __name__ == '__main__':
     TEST_MODULO = 15
     ########
     # Task one - Extended euclidean algorithm
-    # a = 620709603821307061
-    # b = 390156375246520685
-    # R, u, v = ExtendedEuclideanAlgorithm(a, b)
-    # print(f"Extended Euc. Algorithm of\nA  == {a}\nB  == {b}\GCD is {R}")
-    # print(f"Coefficient for bigger int (u) u == {u}\nCoefficient for smaller int (v) == {v}")
-    # print(BinaryExponentiation(2, 4))
-    # print(5 // 2)
-    # ReduceToEchelonForm(matrix=test_matrix, modulus=TEST_MODULO)
-    # print(ExtendedEuclideanAlgorithm(2, 15))
+    a = 620709603821307061
+    b = 390156375246520685
+    R, u, v = ExtendedEuclideanAlgorithm(a, b)
+    print(f"Extended Euc. Algorithm of\nA  == {a}\nB  == {b}\GCD is {R}")
+    print(f"Coefficient for bigger int (u) u == {u}\nCoefficient for smaller int (v) == {v}")
+    print(BinaryExponentiation(2, 4))
 
-    # var_1 = -776439811
-    # var_2 = 50556018318800449023
-    # print(f"Jacobi of {var_1} and {var_2} is: {JacobiSymbol(var_1, var_2)}")
-    print(Solovay_Strassen_Test((2 ** 127) - 1, 20))
-    # a = 620709603821307061
-    # b = 390156375246520685
-# 
-# k, u, v = (ExtendedEuclideanAlgorithm(620709603821307061, 390156375246520685))
-# print(f"EEA: {k} u is {u} v is {v}")
-# print(f"Does u * {a} + v * {b} = GCD(a, b)?: {VerifyECA(a, b, u, v)}")
-# M = RowReduceEchelonForm(matrix, MODULO)
 
-# s = [[str(e) for e in row] for row in M]
-# lens = [max(map(len, col)) for col in zip(*s)]
-# fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-# table = [fmt.format(*row) for row in s]
-# print('\n'.join(table))
+    var_1 = -776439811
+    var_2 = 50556018318800449023
+    print(f"Jacobi of {var_1} and {var_2} is: {JacobiSymbol(var_1, var_2)}")
+    print(f"Solovay Strassen test: 2**127 -1 is {Solovay_Strassen_Test((2 ** 127) - 1, 20)}")
+    a = 620709603821307061
+    b = 390156375246520685
+    #
+    k, u, v = (ExtendedEuclideanAlgorithm(620709603821307061, 390156375246520685))
+    print(f"EEA: {k} u is {u} v is {v}")
+    print(f"Does u * {a} + v * {b} = GCD(a, b)?: {VerifyECA(a, b, u, v)}")
+    M = RowReduceEchelonForm(matrix, MODULO)
 
-# print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
+    s = [[str(e) for e in row] for row in M]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print('\n'.join(table))
+    print("\n")
+    SolveSystem(M, MODULO)
+
+    print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
