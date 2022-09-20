@@ -3,6 +3,9 @@ Implement arithmetic operations with polynomials g(x) & f(x) under
 modulus a prime number p.
 """
 
+import re
+from turtle import end_fill
+
 
 def Polynomial_addition(f_x: list, g_x: list, p: int) -> list:
     f_x, g_x = EqualizeLengthOnOrder(f_x, g_x)
@@ -11,6 +14,7 @@ def Polynomial_addition(f_x: list, g_x: list, p: int) -> list:
 
 
 def EqualizeLengthOnOrder(f_x, g_x):
+    # this is naive approach! todo
     # if deg(f) != deg(g)
     if len(f_x) < len(g_x):
         f_x = [0] + f_x
@@ -69,11 +73,27 @@ def Polynomial_division(num, den):
     return quot, num
 
 
-def test(num, den):
-    print("%s / %s ->" % (num, den))
-    q, r = Polynomial_division(num, den)
-    print("quot: %s, rem: %s\n" % (q, r))
-    return q, r
+def PolyDiv(f_x, g_x, p: int):
+    import copy
+    # make sure deg(f_x) > deg(g_x)
+    assert len(f_x) >= len(g_x)
+
+    # Copy input arr. so we can change them
+    f_x = copy.deepcopy(f_x)
+    g_x = copy.deepcopy(g_x)
+
+    i_th_elem = 0
+    while True:
+        dividator = f_x[i_th_elem]
+
+        divident = g_x[0]
+
+        # mult. divident with x s.t dividator == 0 mod p
+        print(divident)
+        faktor = (divident % p) * pow(divident, -1, p)
+        print(faktor)
+        print(dividator * faktor % p)
+        break
 
 
 def PrintPolynomial(h_x: list):
@@ -89,26 +109,10 @@ def PrintPolynomial(h_x: list):
 if __name__ == '__main__':
     PRIME = 3
 
-    list_1 = [1, 2, 0]
-    list_2 = [2, 1, 1, 2]
+    a = [1, 0, 3, 1]
+    b = [1, 2, 1]
 
-    num = [1, 5, 10, 10, 5, 1]
-    den = [1, 2, 1]
-    a, b = test(num, den)
-    PrintPolynomial(a)
-    PrintPolynomial(b)
-
-    num = [5, 16, 10, 22, 7, 11, 1, 3]
-    den = [1, 2, 1, 3]
-
-    quot = [5, 1, 3, 0, 1]
-    rem = [0, 5]
-
-    q, r = test(num, den)
-    PrintPolynomial(q)
-    PrintPolynomial(r)
-    assert quot == q
-    assert rem == r
+    PolyDiv(a, b, PRIME)
 
     # print(Polynomial_addition(list_1, list_2, PRIME))
     # PrintPolynomial(Polynomial_multiplication(list_1, list_2, PRIME))
