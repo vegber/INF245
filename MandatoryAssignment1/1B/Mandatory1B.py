@@ -76,9 +76,6 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
         _round += 1
 
 
-
-
-
 def Polynomial_GCD(f_x: list, g_x: list, p: int):
     pass
 
@@ -100,7 +97,7 @@ def PrintPolynomial(h_x: list):
 def PrintQuotient(q_x: list):
     out = ""
     for i, e in enumerate(q_x):
-        out += f"{e[0]}x^{(len(q_x) - i)}"
+        out += f"{e[0]}x^{(i)}"
     return out
 
 
@@ -110,16 +107,16 @@ if __name__ == '__main__':
     # a = [1, 0, 3, 1]
     # b = [1, 2, 1]
 
-    test_1 = [1, 0, 2, 1]
-    test_2 = [1, 0, 4, 1, 2]
+    test_1 = [1, 7, 6]  # [1, 0, 2, 1]
+    test_2 = [1, 5, 6]  # [1, 0, 4, 1, 2]
     f = [1, 2, 0, 2, 1]
     g = [0, 1, 2, 0, 1]
-    print(gcd(f, g, p=3, verbose=True))
     # print("POLYNOMIAL LONG DIVISION")
-    # a, b = PolynomialDivision(test_2, test_1, PRIME)
+    a, b = PolynomialDivision(test_2, test_1, 5)
+    print(a)
     # print(f"Dividing {PrintPolynomial(test_2)} with {PrintPolynomial(test_1)}")
-    # out = f"quotient: {PrintQuotient(a)} with remainder: {PrintPolynomial(b)}"
-    # print(out)
+    out = f"quotient: {PrintQuotient(a)} with remainder: {PrintPolynomial(b)}"
+    print(out)
     # print(f"quotient: {a} remainder", end=" "), PrintPolynomial(b)
     # print(PolyDiv(a, b, PRIME))
     # print(" %s / %s =" % (N, D))
@@ -129,5 +126,3 @@ if __name__ == '__main__':
     # print("multiplication: ")
     # PrintPolynomial(Polynomial_multiplication(test_1, test_2, PRIME))
     # print(pow(2, -2, PRIME))
-
-
