@@ -3,10 +3,6 @@ Implement arithmetic operations with polynomials g(x) & f(x) under
 modulus a prime number p.
 """
 
-import re
-from turtle import end_fill
-from typing import Any
-
 
 def Polynomial_addition(f_x: list, g_x: list, p: int) -> list:
     f_x, g_x = EqualizeLengthOnOrder(f_x, g_x)
@@ -52,7 +48,7 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
         highest_order_elemt_index = get_highest_order_elem(f_x)
         order_of_highest_elemt = len(f_x) - highest_order_elemt_index
 
-        if order_of_highest_elemt <= len(g_x) - 1:
+        if order_of_highest_elemt < len(g_x) - 1:
             # can't divide this element, rest is remainder
             return quotient, f_x
         # find a s.t a*g[0] == inv(f_x(0)) = 0
@@ -77,7 +73,11 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
 
 
 def Polynomial_GCD(f_x: list, g_x: list, p: int):
-    pass
+
+    q, r = PolynomialDivision(f_x, g_x, p)
+
+    print(q, r)
+
 
 
 def get_highest_order_elem(l: list) -> int:
@@ -102,21 +102,23 @@ def PrintQuotient(q_x: list):
 
 
 if __name__ == '__main__':
-    PRIME = 5
+    PRIME = 7
 
     # a = [1, 0, 3, 1]
     # b = [1, 2, 1]
 
-    test_1 = [1, 7, 6]  # [1, 0, 2, 1]
-    test_2 = [1, 5, 6]  # [1, 0, 4, 1, 2]
     f = [1, 2, 0, 2, 1]
     g = [0, 1, 2, 0, 1]
+
+    test_1 = [3, 6, 3, 2, 3]
+    test_2 = [2, 0, 5, 1]
+    Polynomial_GCD(test_1, test_2, p=PRIME)
     # print("POLYNOMIAL LONG DIVISION")
-    a, b = PolynomialDivision(test_2, test_1, 5)
-    print(a)
+    # a, b = PolynomialDivision(test_2, test_1, 5)
+    # print(a)
     # print(f"Dividing {PrintPolynomial(test_2)} with {PrintPolynomial(test_1)}")
-    out = f"quotient: {PrintQuotient(a)} with remainder: {PrintPolynomial(b)}"
-    print(out)
+    # out = f"quotient: {PrintQuotient(a)} with remainder: {PrintPolynomial(b)}"
+    # print(out)
     # print(f"quotient: {a} remainder", end=" "), PrintPolynomial(b)
     # print(PolyDiv(a, b, PRIME))
     # print(" %s / %s =" % (N, D))
