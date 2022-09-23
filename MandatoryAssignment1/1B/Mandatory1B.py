@@ -34,6 +34,8 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
     # make sure deg(f_x) > deg(g_x)
     assert len(f_x) >= len(g_x)
 
+    g_x = g_x[get_highest_order_elem(g_x):]
+    f_x = f_x[get_highest_order_elem(f_x):]
     unpadded_g = g_x
     g_x = [0] * (len(f_x) - len(g_x)) + g_x
 
@@ -73,15 +75,37 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
 
 
 def Polynomial_GCD(f_x: list, g_x: list, p: int):
+    import copy
+    f = copy.deepcopy(f_x)
+    g = copy.deepcopy(g_x)
 
-    q, r = PolynomialDivision(f_x, g_x, p)
-
-    print(q, r)
-
+    q, r = PolynomialDivision(f, g_x, p)
+    g = [0] * (len(r) - len(g)) + g
+    while True:
+        if getDegre(r) == 0 and r[-1] == 0:
+            break
+        q, r_prime = PolynomialDivision(g, r, p)
+        g = r
+        r = r_prime
+    # make gcd Monic
+    inv_largest = pow(g[get_highest_order_elem(g)], -1, p)
+    return [(g * inv_largest) % p for g in g]
 
 
 def get_highest_order_elem(l: list) -> int:
-    return [i for i, e in enumerate(l) if e != 0][0]
+    if len([x for x in l if x == 0]) == len(l):
+        return len(l)
+    else:
+        return [i for i, e in enumerate(l) if e != 0][0]
+
+
+def getDegre(l: list):
+    x = 0
+    for i, e in enumerate(l):
+        if e != 0:
+            x = (len(l)) - i - 1
+            break
+    return x
 
 
 def PrintPolynomial(h_x: list):
@@ -112,7 +136,7 @@ if __name__ == '__main__':
 
     test_1 = [3, 6, 3, 2, 3]
     test_2 = [2, 0, 5, 1]
-    Polynomial_GCD(test_1, test_2, p=PRIME)
+    print(Polynomial_GCD(test_1, test_2, p=PRIME))
     # print("POLYNOMIAL LONG DIVISION")
     # a, b = PolynomialDivision(test_2, test_1, 5)
     # print(a)

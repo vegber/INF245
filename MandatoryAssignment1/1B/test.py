@@ -1,10 +1,6 @@
-from Mandatory1B import modInverse, modDivide
+from Mandatory1B import getDegre, get_highest_order_elem
 
-p = 5
-
-print(modDivide(4, 3, p))
+var = [0, 0, 1, 0]
 
 
-
-for x in range(1, 5):
-    print(f"{x} inverse : {-x % 5}")
+print(pow(2, -1, 7))
