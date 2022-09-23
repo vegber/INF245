@@ -36,7 +36,7 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
 
     g_x = g_x[get_highest_order_elem(g_x):]
     f_x = f_x[get_highest_order_elem(f_x):]
-    unpadded_g = g_x
+    tmp_G = g_x
     g_x = [0] * (len(f_x) - len(g_x)) + g_x
 
     # Copy input arr. so we can change them
@@ -57,19 +57,14 @@ def PolynomialDivision(f_x: list, g_x: list, p: int):
         factor = [x for x in range(p) if ((x * g_x[get_highest_order_elem(g_x)]) % p) == f_x[
             highest_order_elemt_index]][0]  # modDivide(f_x[highest_order_elemt_index], get_highest_order_elem(g_x), p)
 
-        z = -((g_x[get_highest_order_elem(g_x)] * factor) % p) % p
         quotient.append((factor, abs(get_highest_order_elem(f_x) - get_highest_order_elem(g_x))))
 
         factor_order = quotient[_round][1]
-        i = get_highest_order_elem(f_x)
         y = 0
-        for g_i in range(len(unpadded_g)):
-            g_i_z = -(unpadded_g[g_i] * factor) % p
-            order_g_i = len(unpadded_g) - g_i
-
+        for g_i in range(len(tmp_G)):
+            g_i_z = -(tmp_G[g_i] * factor) % p
+            order_g_i = len(tmp_G) - g_i
             f_x[len(f_x) - (order_g_i + factor_order)] = (f_x[len(f_x) - (order_g_i + factor_order)] + g_i_z) % p
-            # f_x[(i+y)] = (f_x[i+y] + g_i_z) % p
-
             y += 1
         _round += 1
 
@@ -90,6 +85,25 @@ def Polynomial_GCD(f_x: list, g_x: list, p: int):
     # make gcd Monic
     inv_largest = pow(g[get_highest_order_elem(g)], -1, p)
     return [(g * inv_largest) % p for g in g]
+
+
+def Polynomial_BinaryExponentiation(f_x, a, g_x, p):
+    res = [1]
+
+    if a == 0:
+        return res
+
+    while a > 0:
+
+        f_x = f_x[get_highest_order_elem(f_x):]
+        if a % 2 == 1:
+            res = Polynomial_multiplication(res, f_x, p)
+            q, res = PolynomialDivision(res, g_x, p)
+        a = a // 2
+        h = Polynomial_multiplication(h, h, p)
+        q, h = PolynomialDivision(h, g_x, p)
+
+    return res
 
 
 def get_highest_order_elem(l: list) -> int:
@@ -126,17 +140,19 @@ def PrintQuotient(q_x: list):
 
 
 if __name__ == '__main__':
-    PRIME = 7
+    PRIME = 3
 
     # a = [1, 0, 3, 1]
     # b = [1, 2, 1]
 
-    f = [1, 2, 0, 2, 1]
-    g = [0, 1, 2, 0, 1]
+    f = [2, 1, 3, 0]
+    g = [1, 1]
+    a = 2
+    test_1 = [2, 2, 2, 1]
 
-    test_1 = [3, 6, 3, 2, 3]
     test_2 = [2, 0, 5, 1]
-    print(Polynomial_GCD(test_1, test_2, p=PRIME))
+
+    # print(Polynomial_GCD(test_1, test_2, p=PRIME))
     # print("POLYNOMIAL LONG DIVISION")
     # a, b = PolynomialDivision(test_2, test_1, 5)
     # print(a)
@@ -149,6 +165,9 @@ if __name__ == '__main__':
     # print(" %s remainder %s" % poly_div(N, D, 5))
     # print("POLYNOMAIAL ADDITION")
     # PrintPolynomial(Polynomial_addition(test_1, test_2, PRIME))
-    # print("multiplication: ")
-    # PrintPolynomial(Polynomial_multiplication(test_1, test_2, PRIME))
+    # print("MULTIPLICATION: ")
+    # print(PrintPolynomial(Polynomial_multiplication(test_1, test_1, 3)))
     # print(pow(2, -2, PRIME))
+
+    print("Exponentiation under modulo: ")
+    print(Polynomial_BinaryExponentiation(f, a, g, PRIME))

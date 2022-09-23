@@ -530,12 +530,14 @@ class PolyRing:
         return roots
 
 
-f_x = [3, 6, 3, 2, 3]
-g_x = [2, 0, 5, 1]
+PRIME = 3
 
-PRIME = 7
+f_x = [2, 1, 3, 0]
+g_x = [1, 1]
+a = 2
 
-obj_1 = PolyRing(f_x, modulo=PRIME)
-obj_2 = PolyRing(g_x, modulo=PRIME)
-a, b =(obj_1.__longdiv__(obj_2))
-print(b)
+obj_1 = PolyRing(f_x, PRIME)
+obj_2 = PolyRing(g_x, PRIME)
+print(obj_1.__binExpPolyMod__(obj_2, a))
+
+
