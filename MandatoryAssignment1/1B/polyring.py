@@ -491,7 +491,11 @@ class PolyRing:
 
             elif vx.degree == 1:
                 done = True
+                print("vx", vx)
+                print(vx.coeffs[1])
+                print("res", res)
                 res = (res - EEA(gx.modulo, vx.coeffs[1])[1] * vx.coeffs[0]) % fx.modulo
+
 
             elif 2 <= vx.degree < gx.degree:
                 kx, rx = gx.__longdiv__(vx)
@@ -500,7 +504,6 @@ class PolyRing:
                     gx = kx.__compress__()
                 else:
                     gx = vx.__compress__()
-
         return res
 
     def __findAllRoots__(self):
@@ -530,14 +533,26 @@ class PolyRing:
         return roots
 
 
-PRIME = 3
+PRIME = 113
 
-f_x = [2, 1, 3, 0]
-g_x = [1, 1]
-a = 2
-
+x = [1, 1]
+f_x = [1, 70, 89, 81, 96]
+f_x = f_x[::-1]
 obj_1 = PolyRing(f_x, PRIME)
-obj_2 = PolyRing(g_x, PRIME)
-print(obj_1.__binExpPolyMod__(obj_2, a))
 
+obj_2 = PolyRing(x, PRIME)
+
+a = [2, 2, 1, 1]
+a = PolyRing(a[::-1], 5)
+
+b = [3, 2, 3]
+b = PolyRing(b[::-1], 5)
+
+print(a.__gcd__(b))
+
+# print(obj_1.__gcd__(obj_2))
+
+print(obj_2.__binExpPolyMod__(obj_1, 43))
+
+print(obj_1.__findAllRoots__())
 
