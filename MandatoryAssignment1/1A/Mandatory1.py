@@ -83,22 +83,21 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
     return MATRIX
 
 
-def SolveSystem(m: list, modulus: int):
-    piv, sol = 0, []
-    for j in range(len(m)):
-        piv += 1
-        temp = []
-        for i in range(piv, len(M[j]) - 1):
-            temp.append(['x%d' % (i + 1), ((-1) * i) % modulus])
-        temp.append(['', M[j][-1]])
-        sol.append(temp)
+# This is a helping function that will reduce the matrix upwards from the bottom left pivot
+# which in the end will solve the matrix. We simply take each pivot, then take each position above
+# the pivot, and multiply this number with the pivot row. then we subtract the pivot row with the
+# current row above. this will create zeros above the pivot. when we are done with all the pivots
+# we will be left with a solved matrix if the matrix is solvable.
+def SolveRowEchelonForm(m, p):
+    kpivot = 0
+    for x in range(len(m) - 1, 0, -1):
+        for y in range(len(m) - kpivot - 1, 0, -1):
+            num = m[y - 1][len(m[0]) - 1 - kpivot - 1]
+            for z in range(len(m[0]) - 1, 0, -1):
+                m[y - 1][z] = (m[y - 1][z] - m[x][z] * num) % p
+        kpivot += 1
 
-    for i, e in enumerate(sol):
-        print(f"x{i + 1} = {' *'.join([' %s (%d)' % (x[0], x[1]) for x in e])}")
-    print("\n")
-    for i, e in enumerate(sol):
-        numb = [x[1] for x in e]
-        print(f"x{i + 1} = {math.prod(numb) % modulus}")
+    return m
 
 
 def JacobiSymbol(a, n, d=1):
@@ -184,7 +183,6 @@ if __name__ == '__main__':
     print(f"Coefficient for bigger int (u) u == {u}\nCoefficient for smaller int (v) == {v}")
     print(BinaryExponentiation(2, 4))
 
-
     var_1 = -776439811
     var_2 = 50556018318800449023
     print(f"Jacobi of {var_1} and {var_2} is: {JacobiSymbol(var_1, var_2)}")
@@ -196,6 +194,7 @@ if __name__ == '__main__':
     print(f"EEA: {k} u is {u} v is {v}")
     print(f"Does u * {a} + v * {b} = GCD(a, b)?: {VerifyECA(a, b, u, v)}")
     M = RowReduceEchelonForm(matrix, MODULO)
+    M = SolveRowEchelonForm(M, MODULO)
 
     s = [[str(e) for e in row] for row in M]
     lens = [max(map(len, col)) for col in zip(*s)]
@@ -203,6 +202,7 @@ if __name__ == '__main__':
     table = [fmt.format(*row) for row in s]
     print('\n'.join(table))
     print("\n")
-    SolveSystem(M, MODULO)
 
-    print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
+
+    print(
+        f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
