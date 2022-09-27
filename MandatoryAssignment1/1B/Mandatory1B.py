@@ -169,9 +169,10 @@ def Polynomial_find_root(f_x: list, prime):
     # now:
     # h(x) congruent x^P - X mod f(x)
     h_x = Polynomial_addition(h_prime, [-1, 0], prime)
-
+    print(f"first it. h(x): {h_x}")
     # g(x) <- gcd(h(x), f(x)
     g_x = Polynomial_GCD(h_x, f_x, prime)
+    print(g_x)
 
     #############################
     # STAGE 2
@@ -276,15 +277,15 @@ def PrintQuotient(q_x: list):
 if __name__ == '__main__':
     a = [2, 2, 1, 1]  # 2x^3 + 2x^2 + x + 1
     b = [3, 2, 3]  # 3x^2 + 2x + 3
-    prime = 5
+    # prime = 5
     # GCD (2x^3 + 2x^2 + x + 1 , 3x^2 + 2x + 3)
     # Should be: 3
-    result = Polynomial_GCD(a, b, prime)
-    print(f"Result of GCD a, b  is : {PrintPolynomial(result)}")
+    # result = Polynomial_GCD(a, b, prime)
+    # print(f"Result of GCD a, b  is : {PrintPolynomial(result)}")
 
-    # f_x = [1, 70, 89, 81, 96]  # x^4 + 70x^3 + 89x^2 + 81x + 96
-    # prime = 113
-    # roots = Polynomial_FindAll_roots(f_x, prime)
+    f_x = [1, 70, 89, 81, 96]  # x^4 + 70x^3 + 89x^2 + 81x + 96
+    prime = 113
+    roots = Polynomial_find_root(f_x, prime)
     # print(roots)
 
     # print(Polynomial_BinaryExponentiation([1, 0], 43, f_x, 43))

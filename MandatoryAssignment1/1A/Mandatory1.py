@@ -83,21 +83,49 @@ def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
     return MATRIX
 
 
-# This is a helping function that will reduce the matrix upwards from the bottom left pivot
-# which in the end will solve the matrix. We simply take each pivot, then take each position above
-# the pivot, and multiply this number with the pivot row. then we subtract the pivot row with the
-# current row above. this will create zeros above the pivot. when we are done with all the pivots
-# we will be left with a solved matrix if the matrix is solvable.
-def SolveRowEchelonForm(m, p):
-    kpivot = 0
-    for x in range(len(m) - 1, 0, -1):
-        for y in range(len(m) - kpivot - 1, 0, -1):
-            num = m[y - 1][len(m[0]) - 1 - kpivot - 1]
+def SolveRowEchelonForm(m: list, p: int) -> list:
+    """
+    Tries to reduce matrix from pivot elements. Start in reversed order,  take each row[pivot] multiply
+    under modulo with this row. Subtract row with current row. Return solved matrix
+    :param m: reduced echenom form matrix
+    :param p: prime
+    :return: solved matrix
+    """
+    PIV = 0
+    for j in range(len(m) - 1, 0, -1):
+        for i in range(len(m) - PIV - 1, 0, -1):
+            # Take each pivot row
+            num = m[i - 1][len(m[0]) - 1 - PIV - 1]
             for z in range(len(m[0]) - 1, 0, -1):
-                m[y - 1][z] = (m[y - 1][z] - m[x][z] * num) % p
-        kpivot += 1
-
+                # subtract pivot row with row - 1 to create null elements
+                m[i - 1][z] = (m[i - 1][z] - m[j][z] * num) % p
+                # reduce under modulo
+        PIV += 1
     return m
+
+
+def VerifySolution(org_m: list, solved_m, p: int):
+    """
+    Remember: org_
+    To check solution, we use the values we got for x_i
+    and multiply then with the values in the original matrix.
+
+    Simply check if matrix(Aij * X_i) == solution S
+    :param org_m:
+    :param solved_m:
+    :param p:
+    :return:
+    """
+    x_i = [x[-1] for x in solved_m]
+    for j in range(len(org_m)):
+        print(org_m[j])
+        # zip will only iterate over min(ListA, ListB)
+        # so we will not iterate over last which is our solution
+        n = sum([s * x for s, x in zip(org_m[j], x_i)]) % p
+        assert n == org_m[j][-1]
+    # if assertion not failed
+    # then it is success
+    print("Solution verified!")
 
 
 def JacobiSymbol(a, n, d=1):
@@ -160,6 +188,15 @@ def Solovay_Strassen_Test(n, k=20) -> str:
     return "Probably Prime"
 
 
+def PrintMatrix(m):
+    s = [[str(e) for e in row] for row in M]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print('\n'.join(table))
+    print("\n")
+
+
 if __name__ == '__main__':
     matrix = [
         [1, -2, -2, -2, -1, 2],
@@ -194,15 +231,11 @@ if __name__ == '__main__':
     print(f"EEA: {k} u is {u} v is {v}")
     print(f"Does u * {a} + v * {b} = GCD(a, b)?: {VerifyECA(a, b, u, v)}")
     M = RowReduceEchelonForm(matrix, MODULO)
+    print("Row Reduced to echelon form: ")
+    PrintMatrix(M)
     M = SolveRowEchelonForm(M, MODULO)
+    print("Solved Linear system (matrix form): ")
+    PrintMatrix(M)
+    VerifySolution(matrix, solved_m=M, p=MODULO)
+    # print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
 
-    s = [[str(e) for e in row] for row in M]
-    lens = [max(map(len, col)) for col in zip(*s)]
-    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-    table = [fmt.format(*row) for row in s]
-    print('\n'.join(table))
-    print("\n")
-
-
-    print(
-        f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
