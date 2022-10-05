@@ -42,8 +42,8 @@ def find_roots(a, b, c):
 
     negative = -b - sqrt_val
 
-    x_1 = pluss / 2  # Fraction(-b + sqrt_val, 2)
-    x_2 = negative / 2  # Fraction(-b - sqrt_val, 2)
+    x_1 = int(pluss // 2)  # Fraction(-b + sqrt_val, 2)
+    x_2 = int(negative // 2)  # Fraction(-b - sqrt_val, 2)
     return x_1, x_2
 
 
@@ -81,15 +81,13 @@ def ContinuedFractionAlgorithm(N: int, e: int):
     P_n, Q_n = Q_n, P_n  # now: P = Numerator, Q = Denominator
 
     for P_i, Q_i in zip(P_n, Q_n):
-        if P_i == 0 or Q_i == 0 or Q_i % 2 == 0 or e * Q_i % P_i != 1: continue
-        phi = (e * Q_i - 1) / P_i
-        if phi.is_integer():
-            if True:
-                x_1, x_2 = find_roots(1, (N - int(phi) + 1), N)
-                print(f"factor: {x_1} , {x_2}")
-                # return abs(x_1), abs(x_1)
-            else:
-                continue
+        if P_i == 0 or Q_i == 0 or Q_i % 2 == 0 or e * Q_i % P_i != 1:
+            continue
+        phi = (e * Q_i - 1) // P_i
+        if valid_roots(phi, N):
+            x_1, x_2 = find_roots(1, (N - int(phi) + 1), N)
+            print(f"factor: {x_1} , {x_2}")
+            # return abs(x_1), abs(x_1)
     return 0, 0
 
 
