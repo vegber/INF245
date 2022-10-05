@@ -1,5 +1,9 @@
 import math
 from typing import Any
+import time
+from fractions import Fraction
+
+import gmpy2 as gmpy2
 
 
 def get_Quotients(a: int, b: int) -> list:
@@ -30,17 +34,23 @@ def find_roots(a, b, c):
     :param N:
     :return:
     """
+    # print(f"a: {a}, b: {b}, c: {c}")
+    dis = (b ** 2) - 4 * a * c
+    sqrt_val = gmpy2.isqrt(dis)  # math.sqrt(abs(dis))
 
-    dis = b * b - 4 * a * c
-    sqrt_val = math.sqrt(abs(dis))
+    pluss = -b + sqrt_val
 
-    return (-b + sqrt_val) / (2 * a), (-b - sqrt_val) / (2 * a)
+    negative = -b - sqrt_val
+
+    x_1 = pluss / 2  # Fraction(-b + sqrt_val, 2)
+    x_2 = negative / 2  # Fraction(-b - sqrt_val, 2)
+    return x_1, x_2
 
 
 def valid_roots(phi, N):
     b = ((N + 1 - phi) ** 2)
     d = (4 * 1 * N)
-    return math.sqrt(b - d).is_integer()
+    return b > d and math.sqrt(abs(b - d)).is_integer()
 
 
 def ContinuedFractionAlgorithm(N: int, e: int):
@@ -53,8 +63,8 @@ def ContinuedFractionAlgorithm(N: int, e: int):
     :return:
     """
 
-    q_n = [0] * 2 + get_Quotients(N, e)
-    P_n = [1, 0] + [0] * (len(q_n) - 2)
+    q_n = get_Quotients(e, N)
+    P_n = [1] + [q_n[1]] + [0] * (len(q_n) - 2)
     Q_n = [0, 1] + [0] * (len(q_n) - 2)
     # P_n = q_n * P_(n-1) + P_(n-2)
     # Q_n = q_n * Q_(n-1) + P_(n_2)
@@ -68,23 +78,23 @@ def ContinuedFractionAlgorithm(N: int, e: int):
     #   2. integer
     #       x^2 - (N+1 - phi)x + N
     P_n, Q_n = P_n[1:], Q_n[1:]
+    P_n, Q_n = Q_n, P_n  # now: P = Numerator, Q = Denominator
+
     for P_i, Q_i in zip(P_n, Q_n):
-        if P_i == 0 or Q_i == 0: continue
+        if P_i == 0 or Q_i == 0 or Q_i % 2 == 0 or e * Q_i % P_i != 1: continue
         phi = (e * Q_i - 1) / P_i
         if phi.is_integer():
-            if valid_roots(phi, N):
-                print(P_i)
-                print(Q_i)
-                x_1, x_2 = find_roots(1, (N + 1 - phi), N)
-                print(f"factor: {x_1},{x_2}")
-                return x_1, x_1
+            if True:
+                x_1, x_2 = find_roots(1, (N - int(phi) + 1), N)
+                print(f"factor: {x_1} , {x_2}")
+                # return abs(x_1), abs(x_1)
             else:
                 continue
     return 0, 0
 
 
 def g_X(x, P: int):
-    return ((x ** 2) + 1) % P
+    return (x ** 2 + x) % P
 
 
 def FactorByP_Method(N: int) -> str | int | Any:
@@ -110,11 +120,11 @@ if __name__ == '__main__':
     N = 1098667602555738997359355609545017255443451483195436981354791765341639135658156206242197992115989996829728203054347117299
     e = 415884005149779743103130951097941968793336745983309971301432658775763996247677181243042840232106535367251782466233724389
 
-    # N = 388511
-    # e = 331879
+    # e = 42667  # 388511
+    # N = 64741  # 331879
     a, b = ContinuedFractionAlgorithm(N, e)
-
-    # p_method_N = 10862216162096506735513546937
+    print(a, b)
+    p_method_N = 10862216162096506735513546937
 
     # var = ContinuedFractionAlgorithm(int(N), int(e))
     # print(continued_fraction(int(N) / int(e)))
