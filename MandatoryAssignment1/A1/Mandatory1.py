@@ -51,7 +51,7 @@ def VerifyECA(a, b, u, v) -> bool:
     return GCD(a, b) == u * a + v * b
 
 
-def RowReduceEchelonForm(m: list, modulus: int) -> Type[list] | list:
+def RowReduceEchelonForm(m: list, modulus: int) -> list:
     # A is concat of matrix A and vector
     # Our matrix M = m x (t + 1)
     MATRIX = copy.deepcopy(m)

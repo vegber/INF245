@@ -3,8 +3,9 @@ import random
 from typing import Any
 import time
 from fractions import Fraction
-
+import MandatoryAssignment1.A1.Mandatory1 as md1
 import gmpy2 as gmpy2
+import numpy as np
 
 
 def get_Quotients(a: int, b: int) -> list:
@@ -36,8 +37,7 @@ def find_roots(a, b, c):
     :return:
     """
     # print(f"a: {a}, b: {b}, c: {c}")
-    dis = (b ** 2) - 4 * a * c
-    sqrt_val = gmpy2.isqrt(dis)  # math.sqrt(abs(dis))
+    sqrt_val = gmpy2.isqrt((b ** 2) - (4 * a * c))  # math.sqrt(abs(dis))
 
     pluss = -b + sqrt_val
 
@@ -49,9 +49,9 @@ def find_roots(a, b, c):
 
 
 def valid_roots(phi, N):
-    b = ((N + 1 - phi) ** 2)
+    b = ((-(N + 1 - phi)) ** 2)
     d = (4 * 1 * N)
-    return b > d and math.sqrt(abs(b - d)).is_integer()
+    return gmpy2.is_square(b - d)
 
 
 def ContinuedFractionAlgorithm(N: int, e: int):
@@ -86,14 +86,14 @@ def ContinuedFractionAlgorithm(N: int, e: int):
             continue
         phi = (e * Q_i - 1) // P_i
         if valid_roots(phi, N):
-            x_1, x_2 = find_roots(1, (N - int(phi) + 1), N)
+            x_1, x_2 = find_roots(1, -(N - int(phi) + 1), N)
             print(f"factor: {x_1} , {x_2}")
             # return abs(x_1), abs(x_1)
     return 0, 0
 
 
 def g_X(x, P: int):
-    return (x ** 2 + x) % P
+    return (x ** 2 + 1) % P
 
 
 def FactorByP_Method(N: int) -> str | int | Any:
@@ -149,6 +149,46 @@ def is_b_smooth(b: list, S_b: list) -> bool:
     return max(b) <= max(S_b)
 
 
+def RowReduceV2(matrix, MODULO: int):
+    for row in range(len(matrix)):
+        for col in range(len(matrix[row])):
+            matrix[row][col] =matrix[row][col] % MODULO
+
+    A = np.array(matrix, dtype=int)
+
+    i = 0  # row
+    j = 0  # column
+    while True:
+        # find next nonzero column
+        while all(A.T[j] == 0):
+            j += 1
+            # if reached the end, break
+            if j == len(A[0]) - 1: break
+        # if a_ij == 0 find first row i_>=i with a
+        # nonzero entry in column j and swap rows i and i_
+        if A[i][j] == 0:
+            i_ = i
+            while A[i_][j] == 0:
+                i_ += 1
+                # if reached the end, break
+                if i_ == len(A) - 1: break
+            A[[i, i_]] = A[[i_, i]]
+        # divide ith row a_ij to make it a_ij == 1
+        A[i] = A[i] / A[i][j]
+        # eliminate all other entries in the jth column by subtracting
+        # multiples of the ith row from the others
+        for i_ in range(len(A)):
+            if i_ != i:
+                A[i_] = A[i_] - A[i] * A[i_][j] / A[i][j]
+        # if reached the end, break
+        if (i == len(A) - 1) or (j == len(A[0]) - 1): break
+        # otherwise, we continue
+        i += 1
+        j += 1
+
+    return A
+
+
 def DixonsMethod(N: int, B: int):
     """
     Dixon's algorithm, Random squares:
@@ -173,25 +213,39 @@ def DixonsMethod(N: int, B: int):
     random_X_s = []
     while len(random_X_s) != B:
         # find random b
-        x_s = random.randint(2, N)
+        x_s = random.randint(math.floor(math.sqrt(N)), N)
         # compute conruence
         b = (x_s ** 2) % N
-        if is_prime(b) or b == 1: continue
+        if b == 1: continue  # if prime and >= B ??
         # find factors
         factors_of_b = prime_factors(b)
+        if max(factors_of_b) > B: continue
         # check if valid
-        if is_b_smooth(factors_of_b, S_b): random_X_s.append((b, factors_of_b))
-
-    print(random_X_s)
+        if is_b_smooth(factors_of_b, S_b):
+            l = [0] * n
+            for i_s in range(len(S_b)):
+                l[i_s] = factors_of_b.count(S_b[i_s])
+            random_X_s.append((b, l))
 
     ### STEP 2 ###
     # collect m = n * c, rows. ( create matrix)
+    M = []
+    for x in random_X_s:
+        print(x[1])
+        M.append(x[1])
+
+
 
     ### STEP 3 ###
     # Contruct system of lin. equations, i.e matrix
+    print()
+    M_r = RowReduceV2(M, 2)
+    for x in M_r:
+        print(x)
 
     ### STEP 4 ###
     # Solve, system of lin. equations: i.e matrix - mod 2
+
 
     ### STEP 5 ###
     # set X = x_1^(Z_1), ... x_m^(Z_m) mod N
@@ -206,6 +260,49 @@ def DixonsMethod(N: int, B: int):
 
     pass
 
+
+def factor(n, B):
+    # Factor base for the given number
+    base =  createBsmooth(B)
+
+    # Starting from the ceil of the root
+    # of the given number N
+    start = int(math.sqrt(n))
+
+    # Storing the related squares
+    pairs = []
+
+    # For every number from the square root
+    # Till N
+    for i in range(start, n):
+
+        # Finding the related squares
+        for j in range(len(base)):
+            lhs = i ** 2 % n
+            rhs = base[j] ** 2 % n
+
+            # If the two numbers are the
+            # related squares, then append
+            # them to the array
+            if lhs == rhs:
+                pairs.append([i, base[j]])
+
+    new = []
+
+    # For every pair in the array, compute the
+    # GCD such that
+    for i in range(len(pairs)):
+        factor = math.gcd(pairs[i][0] - pairs[i][1], n)
+
+        # If we find a factor other than 1, then
+        # appending it to the final factor array
+        if factor != 1:
+            new.append(factor)
+
+    x = np.array(new)
+
+    # Returning the unique factors in the array
+    return np.unique(x)
 
 if __name__ == '__main__':
     # N = 1098667602555738997359355609545017255443451483195436981354791765341639135658156206242197992115989996829728203054347117299
@@ -223,6 +320,6 @@ if __name__ == '__main__':
     # p_method_factor = FactorByP_Method(p_method_N)
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
-    N = 12
-    DixonsMethod(100, 7)
-    # print(prime_factors(N))
+    # N = 12
+    # DixonsMethod(899, 7)
+    print(((2**4 )* 3 * 7) % 629)
