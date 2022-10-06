@@ -1,3 +1,4 @@
+import copy
 import math
 import random
 from typing import Any
@@ -142,7 +143,10 @@ def prime_factors(n):
             factors.append(i)
     if n > 1:
         factors.append(n)
-    return sorted(factors)
+    if factors:
+        return sorted(factors)
+    else:
+        return [0]
 
 
 def is_b_smooth(b: list, S_b: list) -> bool:
@@ -152,8 +156,8 @@ def is_b_smooth(b: list, S_b: list) -> bool:
 def RowReduceV2(matrix, MODULO: int):
     for row in range(len(matrix)):
         for col in range(len(matrix[row])):
-            matrix[row][col] =matrix[row][col] % MODULO
-
+            matrix[row][col] = matrix[row][col] % MODULO
+    return matrix
     A = np.array(matrix, dtype=int)
 
     i = 0  # row
@@ -216,7 +220,8 @@ def DixonsMethod(N: int, B: int):
         x_s = random.randint(math.floor(math.sqrt(N)), N)
         # compute conruence
         b = (x_s ** 2) % N
-        if b == 1: continue  # if prime and >= B ??
+        if b == 1:
+            continue  # if prime and >= B ??
         # find factors
         factors_of_b = prime_factors(b)
         if max(factors_of_b) > B: continue
@@ -230,23 +235,45 @@ def DixonsMethod(N: int, B: int):
     ### STEP 2 ###
     # collect m = n * c, rows. ( create matrix)
     M = []
+
     for x in random_X_s:
         print(x[1])
         M.append(x[1])
-
-
-
+    org_m = copy.deepcopy(M)
     ### STEP 3 ###
     # Contruct system of lin. equations, i.e matrix
     print()
-    M_r = RowReduceV2(M, 2)
+    M_r = RowReduceV2(M, 2)  # row reduced mod m
     for x in M_r:
         print(x)
 
     ### STEP 4 ###
     # Solve, system of lin. equations: i.e matrix - mod 2
+    match_1 = 0
+    match_2 = 0
+    M_r = np.array(M_r, dtype=bool)
+    print(M_r)
+    for x_ in range(len(M_r)):
+        for y in range(len(M_r)):
+            if x_ == y: continue
+            elif (M_r[x_] & M_r[y]).any():
+                match_1 = x_
+                match_2 = y
+                break
 
+    if match_1 == 0 and match_2 == 0:
+        print("repeat")
 
+    x_m_1 = [(x**z) for x, z in zip(org_m[match_1], S_b) if x != 0]
+    x_m_2 = [(x**z) for x, z in zip(org_m[match_2], S_b) if x != 0]
+    X = 0
+    for x, y in zip(x_m_1, x_m_2):
+        if x == 0:
+            x = 1
+        elif y == 0:
+            y = 1
+        X *= (x*y)
+    print()
     ### STEP 5 ###
     # set X = x_1^(Z_1), ... x_m^(Z_m) mod N
     # set Y = q_1^(k_1), ... q_n^(K_m) mod N
@@ -263,7 +290,7 @@ def DixonsMethod(N: int, B: int):
 
 def factor(n, B):
     # Factor base for the given number
-    base =  createBsmooth(B)
+    base = createBsmooth(B)
 
     # Starting from the ceil of the root
     # of the given number N
@@ -304,6 +331,7 @@ def factor(n, B):
     # Returning the unique factors in the array
     return np.unique(x)
 
+
 if __name__ == '__main__':
     # N = 1098667602555738997359355609545017255443451483195436981354791765341639135658156206242197992115989996829728203054347117299
     # e = 415884005149779743103130951097941968793336745983309971301432658775763996247677181243042840232106535367251782466233724389
@@ -321,5 +349,5 @@ if __name__ == '__main__':
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
     # N = 12
-    # DixonsMethod(899, 7)
-    print(((2**4 )* 3 * 7) % 629)
+    DixonsMethod(899, 7)
+    # print(((2**4 )* 3 * 7) % 629)
