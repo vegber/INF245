@@ -153,7 +153,7 @@ def is_b_smooth(b: list, S_b: list) -> bool:
     return max(b) <= max(S_b)
 
 
-def RowReduceV2(matrix, MODULO: int):
+def reduceMod2(matrix, MODULO: int):
     for row in range(len(matrix)):
         for col in range(len(matrix[row])):
             matrix[row][col] = matrix[row][col] % MODULO
@@ -193,6 +193,38 @@ def RowReduceV2(matrix, MODULO: int):
     return A
 
 
+def getY(l1, l2, B_smooth):
+    # set Y = q_1^(k_1), ... q_n^(K_m) mod N
+    Y = 1
+    for x, y, z in zip(l1, l2, B_smooth):
+        val = (x + y) // 2
+        if val == 0: continue
+        y *= (z ** val)
+    return Y
+
+
+def prettyPrintSmoothSquared(l1, l2, S_x):
+    print(f"({l1[0]})^2 ≡ ", end="")
+    for i, e1, e2 in zip(range(len(l2[1])), l1[1], l2[1]):
+        if e1 != 0:
+            print(f"{S_x[i]}^{e1}", end=" ")
+    print("", end=" ")
+    print()
+    print(f"({l2[0]})^2 ≡ ", end="")
+
+    for i, e1, e2 in zip(range(len(l2[1])), l1[1], l2[1]):
+        if e2 != 0:
+            print(f"{S_x[i]}^{e2}", end=" ")
+    print("", end=" ")
+    print()
+    exponents = [(x+y)//2 for x, y in zip(l1[1], l2[1])]
+    print(f"({l1[0]} * {l2[0]})^2 ≡ (", end=" ")
+    for exp in range(len(S_x)):
+        if exponents[exp] == 0: continue
+        print(f"{S_x[exp]}^{exponents[exp]}", end=" ")
+    print(")^2")
+
+
 def DixonsMethod(N: int, B: int):
     """
     Dixon's algorithm, Random squares:
@@ -201,8 +233,7 @@ def DixonsMethod(N: int, B: int):
     :param B: B is the smoothness / complexity
     :return: Factors of N / exl. trivial solutions
     """
-
-    ### STEP 1 ###
+    # STEP 1
     # Random 1 ≤ x < N
     # compute b ≡ x^2 mod N, 1 ≤ b < N
     # trial division by primes |S_b|
@@ -215,7 +246,9 @@ def DixonsMethod(N: int, B: int):
     S_b = createBsmooth(B)
     n = len(S_b)
     random_X_s = []
-    while len(random_X_s) != B:
+    # find m + c rows
+    m = B + 10
+    while len(random_X_s) != m:
         # find random b
         x_s = random.randint(math.floor(math.sqrt(N)), N)
         # compute congruence
@@ -230,62 +263,48 @@ def DixonsMethod(N: int, B: int):
             l = [0] * n
             for i_s in range(len(S_b)):
                 l[i_s] = factors_of_b.count(S_b[i_s])
-            random_X_s.append((b, l))
+            random_X_s.append((x_s, l))
 
-    ### STEP 2 ###
-    # collect m = n * c, rows. ( create matrix)
-    M = []
+    # STEP 2
+    # collect m = n * c, rows. ( create matrix), c = 10
+    # Matrix transposed A^T
+    M, org_m = createMatrix(random_X_s)
 
-    for x in random_X_s:
-        print(x[1])
-        M.append(x[1])
-    org_m = copy.deepcopy(M)
-    ### STEP 3 ###
-    # Contruct system of lin. equations, i.e matrix
-    print()
-    M_r = RowReduceV2(M, 2)  # row reduced mod m
-    for x in M_r:
-        print(x)
+    # STEP 3
+    # Construct system of lin. equations, i.e matrix, and reduce mod 2
+    REDUCED_MATRIX = reduceMod2(M, 2)  # row reduced mod 2
 
-    ### STEP 4 ###
-    # Solve, system of lin. equations: i.e matrix - mod 2
-    match_1 = 0
-    match_2 = 0
-    M_r = np.array(M_r, dtype=bool)
-    print(M_r)
-    for x_ in range(len(M_r)):
-        for y in range(len(M_r)):
-            if x_ == y: continue
-            elif (M_r[x_] & M_r[y]).any():
-                match_1 = x_
-                match_2 = y
-                break
+    # #solutions is = s^ (m - n) - 1
+    # STEP 4
+    # Solve, system of lin. equations: i.e find zero linear combinations between rows, thus
+    # solving the system.
+    REDUCED_MATRIX = np.array(REDUCED_MATRIX, dtype=int)
+    for iter_1 in range(len(REDUCED_MATRIX)):
+        for iter_2 in range(len(REDUCED_MATRIX)):
+            if iter_1 == iter_2:
+                continue
+            # python magic, to see if two vectors make zero solution
+            elif np.array_equal(REDUCED_MATRIX[iter_1], REDUCED_MATRIX[iter_2]):
+                # multiply decompositions:
+                # set X = x_1^(Z_1), ... x_m^(Z_m) mod N
+                X = (random_X_s[iter_1][0] * random_X_s[iter_2][0]) % N
+                # GCD(X - Y, N) == N_1
+                # if N_1 == 1 or N
+                # Try another solution of step 3
+                #
+                # N_1 != N: N_1 is factor of N!
+                Y = getY(REDUCED_MATRIX[iter_1], REDUCED_MATRIX[iter_2], S_b)
+                gcd_n_1 = math.gcd((X - Y), N)
+                if gcd_n_1 != 1 and gcd_n_1 != N:
+                    prettyPrintSmoothSquared(org_m[iter_1], org_m[iter_2], S_b)
+                    print(f"Found factor of N: {gcd_n_1} the other one should be N / factor: giving {N // gcd_n_1}")
+                    return gcd_n_1
+    DixonsMethod(N, B)
 
-    if match_1 == 0 and match_2 == 0:
-        print("repeat")
 
-    x_m_1 = [(z**x) for x, z in zip(org_m[match_1], S_b) if x != 0]
-    x_m_2 = [(z**x) for x, z in zip(org_m[match_2], S_b) if x != 0]
-    Y = np.prod(x_m_1) * np.prod(x_m_2)
-    X = random_X_s[match_1][0] * random_X_s[match_2][0]
-
-    ### STEP 5 ###
-    # set X = x_1^(Z_1), ... x_m^(Z_m) mod N
-    # set Y = q_1^(k_1), ... q_n^(K_m) mod N
-
-    ### STEP 6 ###
-    N_1 = math.gcd(X - Y, N)
-    if N_1 == 1 or N_1 == N:
-        DixonsMethod(N, B)
-    else:
-        print(f"Factor of {N} is {N_1}")
-    # GCD(X - Y, N) == N_1
-    # if N_1 == 1 or N
-    # Try another solution of step 3
-    #
-    # N_1 != N: N_1 is factor of N!
-
-    pass
+def createMatrix(random_X_s):
+    org_m = copy.deepcopy(random_X_s)
+    return [x[1] for x in random_X_s], org_m
 
 
 def factor(n, B):
@@ -349,5 +368,8 @@ if __name__ == '__main__':
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
     # N = 12
-    DixonsMethod(899, 7)
+    fact = DixonsMethod(
+        661643,
+        20)
+    # fact = (DixonsMethod(661643, 20))
     # print(((2**4 )* 3 * 7) % 629)
