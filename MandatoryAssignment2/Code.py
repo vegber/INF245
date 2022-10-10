@@ -218,7 +218,7 @@ def DixonsMethod(N: int, B: int):
     while len(random_X_s) != B:
         # find random b
         x_s = random.randint(math.floor(math.sqrt(N)), N)
-        # compute conruence
+        # compute congruence
         b = (x_s ** 2) % N
         if b == 1:
             continue  # if prime and >= B ??
@@ -264,21 +264,21 @@ def DixonsMethod(N: int, B: int):
     if match_1 == 0 and match_2 == 0:
         print("repeat")
 
-    x_m_1 = [(x**z) for x, z in zip(org_m[match_1], S_b) if x != 0]
-    x_m_2 = [(x**z) for x, z in zip(org_m[match_2], S_b) if x != 0]
-    X = 0
-    for x, y in zip(x_m_1, x_m_2):
-        if x == 0:
-            x = 1
-        elif y == 0:
-            y = 1
-        X *= (x*y)
-    print()
+    x_m_1 = [(z**x) for x, z in zip(org_m[match_1], S_b) if x != 0]
+    x_m_2 = [(z**x) for x, z in zip(org_m[match_2], S_b) if x != 0]
+    Y = np.prod(x_m_1) * np.prod(x_m_2)
+    X = random_X_s[match_1][0] * random_X_s[match_2][0]
+
     ### STEP 5 ###
     # set X = x_1^(Z_1), ... x_m^(Z_m) mod N
     # set Y = q_1^(k_1), ... q_n^(K_m) mod N
 
     ### STEP 6 ###
+    N_1 = math.gcd(X - Y, N)
+    if N_1 == 1 or N_1 == N:
+        DixonsMethod(N, B)
+    else:
+        print(f"Factor of {N} is {N_1}")
     # GCD(X - Y, N) == N_1
     # if N_1 == 1 or N
     # Try another solution of step 3
