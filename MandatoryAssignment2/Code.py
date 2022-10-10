@@ -89,8 +89,10 @@ def ContinuedFractionAlgorithm(N: int, e: int):
         if valid_roots(phi, N):
             x_1, x_2 = find_roots(1, -(N - int(phi) + 1), N)
             print(f"factor: {x_1} , {x_2}")
+            return x_1, x_2
             # return abs(x_1), abs(x_1)
-    return 0, 0
+    print(f"could not factorize")
+    return 0
 
 
 def g_X(x, P: int):
@@ -217,7 +219,7 @@ def prettyPrintSmoothSquared(l1, l2, S_x):
             print(f"{S_x[i]}^{e2}", end=" ")
     print("", end=" ")
     print()
-    exponents = [(x+y)//2 for x, y in zip(l1[1], l2[1])]
+    exponents = [(x + y) // 2 for x, y in zip(l1[1], l2[1])]
     print(f"({l1[0]} * {l2[0]})^2 ≡ (", end=" ")
     for exp in range(len(S_x)):
         if exponents[exp] == 0: continue
@@ -358,7 +360,8 @@ if __name__ == '__main__':
     # e = 42667  # 388511
     # N = 64741  # 331879
     # a, b = ContinuedFractionAlgorithm(N, e)
-    # print(a, b)
+    # double_check = a * b
+    # print(f"Double check a & b is factor? {double_check == N}")
     # p_method_N = 10862216162096506735513546937
 
     # var = ContinuedFractionAlgorithm(int(N), int(e))
@@ -368,8 +371,4 @@ if __name__ == '__main__':
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
     # N = 12
-    fact = DixonsMethod(
-        661643,
-        20)
-    # fact = (DixonsMethod(661643, 20))
-    # print(((2**4 )* 3 * 7) % 629)
+    fact = (DixonsMethod(661643, 20))
