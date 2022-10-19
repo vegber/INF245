@@ -367,8 +367,9 @@ if __name__ == '__main__':
     # var = ContinuedFractionAlgorithm(int(N), int(e))
     # print(continued_fraction(int(N) / int(e)))
     # start = time.time()
-    # p_method_factor = FactorByP_Method(p_method_N)
+    # p_method_factor = FactorByP_Method(77)
+    # print(p_method_factor)
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
     # N = 12
-    fact = (DixonsMethod(661643, 20))
+    fact = (DixonsMethod(77, 5))
