@@ -66,5 +66,61 @@ def runTaskOne():
     print(f"Is g^m mod p == y^a * a^b mod p ? {verifyElGamalSig(P, G, Y, m, a, b)}")
 
 
+def recoverXFromSameKDSA(q, r_1, s_1, s_2, m_1, m_2):
+    """
+    When the same k is used to generate the signatures of two messages: m1 & m2, we can easily recover the
+    secret x.
+    The following should hold:
+    Given the two signatures M1 & M2, we solve for k
+        s1 = inv(k)*(M1 + x*r) mod q
+        s2 = inv(k)*(M2 + x*r) mod q
+        # subtract both signatures:
+        (**All is under mod q)
+            s1 - s2 = inv(k)(M1 + x*r) - inv(k)(M2 + x*r)
+            s1 - s2 = inv(k)(M1 + x*r - M2 + x*r) # reduce exp.
+            s1 - s2 = inv(k)(M1 - M2) # reduce exp.
+        Thus,
+            k = (M1 - M2) / (s1 - s2)
+            recover x from the expression
+                x = r^-1 * (s * k - M) mod q
+    :return: Secret x
+    """
+    delta = pow((s_1 - s_2) % q, -1, q)
+    m_ = (m_1 - m_2) % q
+    k = (m_ * delta) % q
+    rINV = pow(r_1, -1, q)
+    x1 = (rINV * (s_1 * k - m_1)) % q
+    x2 = (rINV * (s_2 * k - m_2)) % q
+    assert x1 == x2, "Recover x failed"
+    return x1
+
+
+def verifyXDSA(g, x, p, y):
+    return y == binExp(g, x, p)
+
+
+def runTaskTwo():
+    """"""
+    p = 3986625417249813809
+    q = 19928344283621
+    g = 2890026512265626020
+
+    # y = g^x mod p
+    y = 1621561995432343084
+
+    m_1, m_2 = 1115209791959069177061830, 2151657259407048953791701
+
+    sig_1, r_1, s_1 = 1115209791959069177061830, 12880312906177, 14706957637905
+    sig_2, r_2, s_2 = 2151657259407048953791701, 12880312906177, 16242187205965
+
+    x = recoverXFromSameKDSA(q, r_1, s_1, s_2, m_1, m_2)
+
+    print(f"Found X: {x}")
+    print(f"Now test if correct answer by: y ≡ g^x mod p")
+    print(f"\ty is {y}")
+    print(f"\tg^x mod p is: {binExp(g, x, p)}\ny≡g^x mod p == {verifyXDSA(g, x, p, y)}")
+
+
 if __name__ == '__main__':
-    runTaskOne()
+    # runTaskOne()
+    runTaskTwo()
