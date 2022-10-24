@@ -4,6 +4,7 @@ Digital Signature Algorithm and Discrete Logarithms
 import math
 import random
 from MandatoryAssignment1.A1.Mandatory1 import BinaryExponentiationWithoutRecursion as binExp
+from sympy.ntheory.residue_ntheory import _discrete_log_pollard_rho
 
 
 def findJ(p):
@@ -119,6 +120,83 @@ def runTaskTwo():
     print(f"Now test if correct answer by: y ≡ g^x mod p")
     print(f"\ty is {y}")
     print(f"\tg^x mod p is: {binExp(g, x, p)}\ny≡g^x mod p == {verifyXDSA(g, x, p, y)}")
+
+
+def f(x, a, b, G, H, P, Q):
+    """
+    Pollard function, three subsets equal size
+    :param x:
+    :param a:
+    :param b:
+    :param G:
+    :param H:
+    :param P:
+    :param Q:
+    :return:
+    """
+    subset = x % 3
+    if subset == 0:
+        x = x * G % P
+        a = (a + 1) % Q
+    elif subset == 1:
+        x = x * H % P
+        b = (b + 1) % Q
+    elif subset == 2:
+        x = x ** 2 % P
+        a = a * 2 % Q
+        b = b * 2 % Q
+    return x, a, b
+
+
+def rhoMethodForLogarithms(G, H, P):
+    """
+
+    :param a: a generator of G
+    :param b: an element of G
+    :return: An integer x such that a^x = b, or failure
+    """
+    # a_i, b_i, x_i = 0, 0, 1
+
+    # P: prime
+    # H:
+    # G: generator
+    Q = (P - 1) / 2  # sub group
+
+    x = G * H
+    a = 1
+    b = 1
+
+    X = x
+    A = a
+    B = b
+
+    # Do not use range() here. It makes the algorithm amazingly slow.
+    for i in range(1, P):
+        # Who needs pass-by reference when you have Python!!! ;)
+
+        # Hedgehog
+        x, a, b = f(x, a, b, G, H, P, Q)
+
+        # Hare
+        X, A, B = f(X, A, B, G, H, P, Q)
+        X, A, B = f(X, A, B, G, H, P, Q)
+
+        if x == X:
+            break
+
+    nom = a - A
+    denom = B - b
+
+    res = pow(denom, -1, Q) * nom % Q
+    if pow(G, res, P) == H:
+        return res
+
+    return res + Q
+
+
+
+def test(p, a, b):
+    print(_discrete_log_pollard_rho(p, a, b))
 
 
 if __name__ == '__main__':
