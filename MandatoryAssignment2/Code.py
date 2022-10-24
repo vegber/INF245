@@ -96,7 +96,7 @@ def ContinuedFractionAlgorithm(N: int, e: int):
 
 
 def g_X(x, P: int):
-    return (x ** 2 + 1) % P
+    return (x ** 2 + x + 28) % P
 
 
 def FactorByP_Method(N: int) -> str | int | Any:
@@ -367,9 +367,8 @@ if __name__ == '__main__':
     # var = ContinuedFractionAlgorithm(int(N), int(e))
     # print(continued_fraction(int(N) / int(e)))
     # start = time.time()
-    # p_method_factor = FactorByP_Method(77)
-    # print(p_method_factor)
+    # p_method_factor = FactorByP_Method(p_method_N)
     # print(f"Time took: {time.time() - start} and result was: {p_method_factor}")
 
     # N = 12
-    fact = (DixonsMethod(77, 5))
+    fact = (DixonsMethod(661643, 20))
