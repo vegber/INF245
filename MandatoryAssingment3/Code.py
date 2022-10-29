@@ -4,6 +4,7 @@ Digital Signature Algorithm and Discrete Logarithms
 import math
 import random
 from MandatoryAssignment1.A1.Mandatory1 import BinaryExponentiationWithoutRecursion as binExp
+from MandatoryAssignment1.A1.Mandatory1 import ExtendedEuclideanAlgorithm as eea
 from sympy.ntheory.residue_ntheory import _discrete_log_pollard_rho
 
 
@@ -58,9 +59,9 @@ def verifyElGamalSig(p, g, y, m, a, b):
 def runTaskOne():
     # forge ElGamal
     print(f"Forge Elgamal Signature")
-    P = 274742860459763
-    G = 5
-    Y = 262274678376340
+    P = 593831971123607
+    G = 13
+    Y = 239505966643112
     print(f"With param: (p) {P},  \t (g) {G}, ", end=" ")
     print(f"(y) ≡ g^x mod p =  {Y}")
     m, a, b = forgeElGamalSigAlgorithm(P, G, Y)
@@ -97,106 +98,75 @@ def recoverXFromSameKDSA(q, r_1, s_1, s_2, m_1, m_2):
 
 
 def verifyXDSA(g, x, p, y):
-    return y == binExp(g, x, p)
+    return y == binExp(g, x, p) and y == pow(g, x, p)
 
 
 def runTaskTwo():
     """"""
-    p = 3986625417249813809
-    q = 19928344283621
-    g = 2890026512265626020
+    p = 949772751547464211
+    q = 4748626326421
+    g = 314668439607541235
 
     # y = g^x mod p
-    y = 1621561995432343084
+    y = 254337213994578435
 
-    m_1, m_2 = 1115209791959069177061830, 2151657259407048953791701
+    m_1, m_2 = 2393923168611338985551149, 9330804276406639874387938
 
-    sig_1, r_1, s_1 = 1115209791959069177061830, 12880312906177, 14706957637905
-    sig_2, r_2, s_2 = 2151657259407048953791701, 12880312906177, 16242187205965
+    sig_1, r_1, s_1 = 2393923168611338985551149, 2381790971040, 3757634198511
+    sig_2, r_2, s_2 = 9330804276406639874387938, 2381790971040, 4492765251707
+
+    # print(rhoMethodForLogarithms(y, g, q))
 
     x = recoverXFromSameKDSA(q, r_1, s_1, s_2, m_1, m_2)
-
     print(f"Found X: {x}")
     print(f"Now test if correct answer by: y ≡ g^x mod p")
     print(f"\ty is {y}")
     print(f"\tg^x mod p is: {binExp(g, x, p)}\ny≡g^x mod p == {verifyXDSA(g, x, p, y)}")
 
+    print("_" * 20)
+    print("task two B: Rho method")
 
-def f(x, a, b, G, H, P, Q):
-    """
-    Pollard function, three subsets equal size
-    :param x:
-    :param a:
-    :param b:
-    :param G:
-    :param H:
-    :param P:
-    :param Q:
-    :return:
-    """
-    subset = x % 3
-    if subset == 0:
-        x = x * G % P
-        a = (a + 1) % Q
-    elif subset == 1:
-        x = x * H % P
-        b = (b + 1) % Q
-    elif subset == 2:
-        x = x ** 2 % P
-        a = a * 2 % Q
-        b = b * 2 % Q
+    f()
+
+
+def fab(x, a, b, alfa, beta, N, n):
+    if x % 3 == 0:
+        x = pow(x, 2, N)  # x * x % N
+        a = a * 2 % n
+        b = b * 2 % n
+
+    elif x % 3 == 1:
+        x = x * alfa % N
+        a = (a + 1) % n
+    else:
+        x = x * beta % N
+        b = (b + 1) % n
+
     return x, a, b
 
 
-def rhoMethodForLogarithms(G, H, P):
-    """
+def solveForX(a, b, A, B, n):
+    print(f"a {(A - a)} * {pow(b - B, -1, n)} % {n}")
+    return ((A - a) * pow((b - B), -1, n)) % n
 
-    :param a: a generator of G
-    :param b: an element of G
-    :return: An integer x such that a^x = b, or failure
-    """
-    # a_i, b_i, x_i = 0, 0, 1
 
-    # P: prime
-    # H:
-    # G: generator
-    Q = (P - 1) / 2  # sub group
+def checkAnswer(generator, x, p, y):
+    return y == pow(generator, x, p)
 
-    x = G * H
-    a = 1
-    b = 1
 
-    X = x
-    A = a
-    B = b
-
-    # Do not use range() here. It makes the algorithm amazingly slow.
-    for i in range(1, P):
-        # Who needs pass-by reference when you have Python!!! ;)
-
-        # Hedgehog
-        x, a, b = f(x, a, b, G, H, P, Q)
-
-        # Hare
-        X, A, B = f(X, A, B, G, H, P, Q)
-        X, A, B = f(X, A, B, G, H, P, Q)
-
-        if x == X:
+def f(N=949772751547464211, n=4748626326421, alfa=314668439607541235, beta=254337213994578435, y=254337213994578435):
+    x, a, b, = 1, 0, 0
+    X, A, B = x, a, b
+    print("%8s %15s %15s %15s  %18s %15s %15s\n" % ("i", "x", "a", "b", "X", "A", "B"))
+    for i in range(1, n):
+        x, a, b = fab(x, a, b, alfa, beta, N, n)
+        X, A, B = fab(X, A, B, alfa, beta, N, n)
+        X, A, B = fab(X, A, B, alfa, beta, N, n)
+        if x == X and math.gcd(b - B, n) == 1:
+            print("%8d %15d %15d %15d   %18d %15d %15d\n" % (i, x, a, b, X, A, B))
+            x = solveForX(a, b, A, B, n)
+            print(f"x is: {x}")
             break
-
-    nom = a - A
-    denom = B - b
-
-    res = pow(denom, -1, Q) * nom % Q
-    if pow(G, res, P) == H:
-        return res
-
-    return res + Q
-
-
-
-def test(p, a, b):
-    print(_discrete_log_pollard_rho(p, a, b))
 
 
 if __name__ == '__main__':
