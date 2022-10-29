@@ -1,47 +1,58 @@
-import math
-import random
-import sys
+import numpy as np
+
+from MandatoryAssignment1.A1.Mandatory1 import SolveRowEchelonForm
+
+def reduceMod2(matrix, MODULO: int):
+    A = np.array(matrix, dtype=int)
+
+    i = 0  # row
+    j = 0  # column
+    while True:
+        # find next nonzero column
+        while all(A.T[j] == 0):
+            j += 1
+            # if reached the end, break
+            if j == len(A[0]) - 1: break
+        # if a_ij == 0 find first row i_>=i with a
+        # nonzero entry in column j and swap rows i and i_
+        if A[i][j] == 0:
+            i_ = i
+            while A[i_][j] == 0:
+                i_ += 1
+                # if reached the end, break
+                if i_ == len(A) - 1: break
+            A[[i, i_]] = A[[i_, i]]
+        # divide ith row a_ij to make it a_ij == 1
+        A[i] = A[i] / A[i][j]
+        # eliminate all other entries in the jth column by subtracting
+        # multiples of the ith row from the others
+        for i_ in range(len(A)):
+            if i_ != i:
+                A[i_] = A[i_] - A[i] * A[i_][j] / A[i][j]
+        # if reached the end, break
+        if (i == len(A) - 1) or (j == len(A[0]) - 1): break
+        # otherwise, we continue
+        i += 1
+        j += 1
+
+    return A
 
 
-def fab(x, a, b, alfa, beta, N, n):
-    if x % 3 == 0:
-        x = pow(x, 2, N)  # x * x % N
-        a = a * 2 % n
-        b = b * 2 % n
+xi = [
+    [2, 2, 1, 0, 0, 100],
+    [4, 0, 0, 0, 0, 18],
+    [0, 1, 1, 0, 1, 12],
+    [1, 0, 0, 1, 1, 62],
+    [1, 2, 0, 0, 1, 143],
+    [1, 1, 1, 1, 1, 206]
+]
+# out = rref_mod_n(xi, 228)
+# a = np.array(out)
+# b = a.reshape(6, 6)
 
-    elif x % 3 == 1:
-        x = x * alfa % N
-        a = (a + 1) % n
-    else:
-        x = x * beta % N
-        b = (b + 1) % n
+# print(b)
 
-    return x, a, b
+out = reduceMod2(xi, 228)
 
-
-def solveForX(a, b, A, B, n):
-    print(f"a {(A-a)} * {pow(b-B, -1, n)} % {n}")
-    return ((A - a) * pow((b - B), -1, n)) % n
-
-
-def checkAnswer(generator, x, p, y):
-    return y == pow(generator, x, p)
-
-
-def f(N=949772751547464211, n=4748626326421, alfa=314668439607541235, beta=254337213994578435, y=254337213994578435):
-    x, a, b, = 1, 0, 0
-    X, A, B = x, a, b
-    print("%8s %15s %15s %15s  %20s %20s %15s\n" % ("i", "x", "a", "b", "X", "A", "B"))
-    for i in range(1, n):
-        x, a, b = fab(x, a, b, alfa, beta, N, n)
-        X, A, B = fab(X, A, B, alfa, beta, N, n)
-        X, A, B = fab(X, A, B, alfa, beta, N, n)
-        if x == X and math.gcd(b - B, n) == 1:
-            print("%8d %15d %15d %15d   %20d %20d %15d\n" % (i, x, a, b, X, A, B))
-            x = solveForX(a, b, A, B, n)
-            print(f"x is: {x}")
-            break
-
-
-# f(41, 40, 6, 7, 39)
-f()
+for x in out:
+    print(x)

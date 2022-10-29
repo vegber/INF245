@@ -51,7 +51,7 @@ def VerifyECA(a, b, u, v) -> bool:
     return GCD(a, b) == u * a + v * b
 
 
-def RowReduceEchelonForm(m: list, modulus: int) -> list:
+def RowReduceEchelonForm(m: list, modulus: int):
     # A is concat of matrix A and vector
     # Our matrix M = m x (t + 1)
     MATRIX = copy.deepcopy(m)
@@ -238,4 +238,3 @@ if __name__ == '__main__':
     PrintMatrix(M)
     VerifySolution(matrix, solved_m=M, p=MODULO)
     # print(f"Binary exponentiation modulo n: {BinaryExponentiationWithoutRecursion(393492946341, 103587276991, 72447943125)}")
-

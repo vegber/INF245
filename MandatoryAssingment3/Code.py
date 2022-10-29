@@ -1,11 +1,14 @@
 """
 Digital Signature Algorithm and Discrete Logarithms
 """
+import copy
 import math
 import random
+
+import numpy as np
+
 from MandatoryAssignment1.A1.Mandatory1 import BinaryExponentiationWithoutRecursion as binExp
-from MandatoryAssignment1.A1.Mandatory1 import ExtendedEuclideanAlgorithm as eea
-from sympy.ntheory.residue_ntheory import _discrete_log_pollard_rho
+from MandatoryAssingment3.test import rref_mod_n
 
 
 def findJ(p):
@@ -169,6 +172,238 @@ def f(N=949772751547464211, n=4748626326421, alfa=314668439607541235, beta=25433
             break
 
 
+def is_prime(n):
+    """
+    :param n:
+    :return: True/False n is prime
+    """
+    for i in range(2, n):
+        if (n % i) == 0:
+            return False
+    return True
+
+
+def createBsmooth(B: int):
+    """
+    Find primes in B
+    :param B:
+    :return: list(primes_n)
+    """
+    return [p for p in range(2, B + 1) if is_prime(p)]
+
+
+def prime_factors(n):
+    i = 2
+    factors = []
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
+    if factors:
+        return sorted(factors)
+    else:
+        return [0]
+
+
+def createMatrix(random_X_s):
+    org_m = copy.deepcopy(random_X_s)
+    return [x[1] for x in random_X_s], org_m
+
+
+def factor(n, B):
+    # Factor base for the given number
+    base = createBsmooth(B)
+
+    # Starting from the ceil of the root
+    # of the given number N
+    start = int(math.sqrt(n))
+
+    # Storing the related squares
+    pairs = []
+
+    # For every number from the square root
+    # Till N
+    for i in range(start, n):
+
+        # Finding the related squares
+        for j in range(len(base)):
+            lhs = i ** 2 % n
+            rhs = base[j] ** 2 % n
+
+            # If the two numbers are the
+            # related squares, then append
+            # them to the array
+            if lhs == rhs:
+                pairs.append([i, base[j]])
+
+    new = []
+
+    # For every pair in the array, compute the
+    # GCD such that
+    for i in range(len(pairs)):
+        factor = math.gcd(pairs[i][0] - pairs[i][1], n)
+
+        # If we find a factor other than 1, then
+        # appending it to the final factor array
+        if factor != 1:
+            new.append(factor)
+
+    x = np.array(new)
+
+    # Returning the unique factors in the array
+    return np.unique(x)
+
+
+def is_b_smooth(b: list, S_b: list) -> bool:
+    return max(b) <= max(S_b)
+
+
+def RowReduceEchelonForm(m: list, modulus: int):
+    # A is concat of matrix A and vector
+    # Our matrix M = m x (t + 1)
+    MATRIX = copy.deepcopy(m)
+    r = 0
+    while r != len(MATRIX):
+        # find pivot el
+        Mij = MATRIX[r][r]
+        d = math.gcd(Mij, modulus)
+        # if d > 1:  # if GCD(Mij, N) > 1, terminate
+        #     return list
+        if d == 1:  # if GCD is one, find Z * b congruent with 1 mod N
+            z = pow(Mij, -1, modulus)
+            # apply z to all elements of row
+            MATRIX[r] = [MATRIX[r][x] * z % modulus for x in range(len(m[0]))]
+        # pivot element completely divides modulo
+        if Mij % modulus == 0:
+            # switch rows r + 1
+            for x in range(r + 1, len(MATRIX)):
+                if MATRIX[x][Mij] != 0 % modulus:
+                    MATRIX[r], MATRIX[r + 1] = MATRIX[r + 1], MATRIX[r]
+                # already switched, now reduce
+
+        # make zero space for r + 1 under pivot element
+        for e in range(r + 1, len(MATRIX)):
+            # apply zero element mult. to all elements of row r + 1
+            MATRIX[e] = [(MATRIX[e][x] - MATRIX[e][r] % modulus * MATRIX[r][x]) % modulus for x in range(len(m[0]))]
+        # if r = m, terminate, else r <- r+1 and
+        Mij, r = Mij + 1, r + 1
+    return list(MATRIX)
+
+
+def SolveRowEchelonForm(m: list, p: int):
+    """
+    Tries to reduce matrix from pivot elements. Start in reversed order,  take each row[pivot] multiply
+    under modulo with this row. Subtract row with current row. Return solved matrix
+    :param M: reduced echenom form matrix
+    :param p: prime
+    :return: solved matrix
+    """
+    PIV = 0
+    M = copy.deepcopy(m)
+    print(type(M))
+    length = sum(1 for _ in M)
+    for j in range(length - 1, 0, -1):
+        for i in range(length - PIV - 1, 0, -1):
+            # Take each pivot row
+            num = M[i - 1][len(M[0]) - 1 - PIV - 1]
+            for z in range(len(M[0]) - 1, 0, -1):
+                # subtract pivot row with row - 1 to create null elements
+                M[i - 1][z] = (M[i - 1][z] - M[j][z] * num) % p
+                # reduce under modulo
+        PIV += 1
+    return M
+
+
+def IndexCalculusAlgorithmj(p=2602163, alfa=1535637, B=30, g=2):
+    S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
+
+    # STEP 2
+    # collect m = n * c, rows. ( create matrix), c = 10
+    # Matrix transposed A^T
+    out = None
+    while out is None:
+        try:
+            out = rref_mod_n(random_X_s, p - 1)
+            a = np.array(out, dtype=int)
+            b = a.reshape(m, 11)
+            # print(b)
+
+            while True:
+                y = random.randint(0, p - 1)
+                tmp = (alfa * (pow(g, y))) % p
+                fac_ = prime_factors(tmp)
+                if is_b_smooth(fac_, S_b):
+                    break
+
+            # solve:
+            l = [0] * n
+            for i_s in range(len(S_b)):
+                l[i_s] = fac_.count(S_b[i_s])
+            x_vals = findXi(b)
+            x = 0
+            for x_i, l_i in zip(x_vals, l):
+                x += (x_i * l_i)
+            x -= y
+            x = x % p
+            return x
+        except:
+            S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
+
+
+def FindRowsBsmooth(B, p):
+    S_b = createBsmooth(B)
+    n = len(S_b)
+    random_X_s = []
+    # find m + c rows
+    m = n
+    while len(random_X_s) != m:
+        # find random b
+        x_s = random.randint(math.floor(math.sqrt(p)), p)
+        # compute congruence
+        b = (x_s ** 2) % p
+        if b == 1:
+            continue  # if prime and >= B ??
+        # find factors
+        factors_of_b = prime_factors(b)
+        if max(factors_of_b) > B: continue
+        # check if valid
+        if is_b_smooth(factors_of_b, S_b):
+            l = [0] * n
+            for i_s in range(len(S_b)):
+                l[i_s] = factors_of_b.count(S_b[i_s])
+            temp = l
+            temp.append(x_s)
+            random_X_s.append(temp)
+            # random_X_s.append((x_s, l))
+    return S_b, m, n, random_X_s
+
+
+def findXi(m: list):
+    xi, piv = [], 0
+    for _ in m:
+        xi.append(m[piv][-1])
+        piv += 1
+    return xi
+
+
+def rundTaskThree():
+    # should be 2116767
+    while True:
+
+        x = int(IndexCalculusAlgorithmj())
+        if pow(2, x, 2602163) == 1535637 or pow(2, x, 2602163 - 1) == 1535637:
+            print(f"Found correct x: {x}")
+            break
+        else:
+            print(f"Wrong: got x ==  {x}", end="\n")
+            print()
+
+
 if __name__ == '__main__':
     # runTaskOne()
-    runTaskTwo()
+    # runTaskTwo()
+    rundTaskThree()
