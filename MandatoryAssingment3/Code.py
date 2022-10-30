@@ -149,12 +149,8 @@ def fab(x, a, b, alfa, beta, N, n):
 
 
 def solveForX(a, b, A, B, n):
-    print(f"a {(A - a)} * {pow(b - B, -1, n)} % {n}")
+    print(f"{(A - a)} * {pow(b - B, -1, n)} % {n}")
     return ((A - a) * pow((b - B), -1, n)) % n
-
-
-def checkAnswer(generator, x, p, y):
-    return y == pow(generator, x, p)
 
 
 def f(N=949772751547464211, n=4748626326421, alfa=314668439607541235, beta=254337213994578435, y=254337213994578435):
@@ -323,7 +319,7 @@ def printMatrix(b):
         print(list(lmao), end="\n")
 
 
-def IndexCalculusAlgorithmj(p=2599739, alfa=1629414, B=30, g=2):
+def IndexCalculusAlgorithmj(p=2602163, alfa=1535637, B=30, g=2):
     S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
 
     # STEP 2
@@ -343,7 +339,7 @@ def IndexCalculusAlgorithmj(p=2599739, alfa=1629414, B=30, g=2):
                     printMatrix(matrix)
                     while True:
                         y = random.randint(0, p - 1)
-                        b = (pow(g, y, p)*alfa) % p
+                        b = (pow(g, y, p) * alfa) % p
                         fac_ = prime_factors(b)
                         if is_b_smooth(fac_, S_b):
                             break
@@ -355,8 +351,8 @@ def IndexCalculusAlgorithmj(p=2599739, alfa=1629414, B=30, g=2):
                     x_vals = findXi(matrix)
                     x = 0
                     for x_i, l_i in zip(x_vals, l):
-                        x += x_i * l_i # (x_i**l_i)
-                    x = (x - y) % (p-1)
+                        x += x_i * l_i  # (x_i**l_i)
+                    x = (x - y) % (p - 1)
 
                     return x
         except:
@@ -371,9 +367,9 @@ def FindRowsBsmooth(B, p):
     m = n
     while len(random_X_s) != m:
         # find random b
-        x_s = random.randint(math.floor(math.sqrt(p)), p-1)
+        x_s = random.randint(math.floor(math.sqrt(p)), p - 1)
         # compute congruence
-        b = pow(2, x_s, p) # (x_s ** 2) % p
+        b = pow(2, x_s, p)  # (x_s ** 2) % p
         if b == 1:
             continue  # if prime and >= B ??
         # find factors
@@ -399,14 +395,14 @@ def findXi(m: list):
     return xi
 
 
-def rundTaskThree():
+def runTaskThree():
     # should be 2116767
     while True:
 
         x = IndexCalculusAlgorithmj()
         if x is not None:
             x = int(x)
-            if pow(2, x, 2599739) == 1629414 or pow(2, x, 2599739 - 1) == 1629414:
+            if pow(2, x, 2602163) == 1535637:
                 print(f"Found correct x: {x}")
                 break
             else:
@@ -417,4 +413,4 @@ def rundTaskThree():
 if __name__ == '__main__':
     # runTaskOne()
     # runTaskTwo()
-    rundTaskThree()
+    runTaskThree()
