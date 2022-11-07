@@ -12,14 +12,14 @@ def pop_zeros(lst):
 
 
 def EEA(a, b):
-    '''
+    """
     For integers a >= b
     Finds the integer d = gcd(a, b) along with the integers u, v s.t.
     a*u + b*v = d
     :param a: int
     :param b: int
     :return: u, v, gcd(a, b)
-    '''
+    """
     assert (isinstance(a, int))
     assert (isinstance(b, int))
     assert (a >= b)
@@ -38,13 +38,13 @@ def EEA(a, b):
 
 
 def binExpMod(a, m, n):
-    '''
+    """
     iteratively calculates a^m mod n
     :param a: int
     :param m: int
     :param n: int
     :return: b = a^m mod n
-    '''
+    """
     res = 1  # Initialize result
 
     # Update a modulo n
@@ -68,18 +68,18 @@ def binExpMod(a, m, n):
 
 
 class PolyRing:
-    '''
+    """
     A class to define polynomials over the finite ring of residues Z/n"
-    '''
+    """
 
     def __init__(self, coeff_lst, modulo):
-        '''
-        Instatiate a polynomial by its coefficients, given in increasing
-        :param coeff_lst: list of coeffiecients, increasing order i.e
+        """
+        Instantiate a polynomial by its coefficients, given in increasing
+        :param coeff_lst: list of coefficients, increasing order i.e
         [1, 2, 4, 0, 1] = 1*x^0 + 2*x^1 + 4*x^2 + 0*x^3 + 1*x^4
         :param coeff_lst: list of coefficients, in order of increasing degree
         :param modulo: the modulo n of the relevant residue ring
-        '''
+        """
         assert (isinstance(modulo, int))
         assert (modulo > 1)
         for c in coeff_lst:
@@ -99,10 +99,10 @@ class PolyRing:
         self.coeffs = coeff_lst
 
     def __str__(self):
-        '''
+        """
         Display the polynomial without the zero coefficients
         :return: str of the polynomial
-        '''
+        """
         res = ""
         if self.degree == 0:
             if self.__lead__()[0] == 0:
@@ -123,11 +123,11 @@ class PolyRing:
         return res
 
     def __eq__(self, other):
-        '''
+        """
         Determine if this polynomial is equal to the other polynomial
         :param other:
         :return: boolean true or false
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
 
@@ -147,20 +147,20 @@ class PolyRing:
         return True
 
     def __copy__(self):
-        '''
+        """
         make a shallow copy of this polynomial f
         :return: h, a shallow copy of f
-        '''
+        """
         h_coeffs = self.coeffs.copy()
         h_modulo = 0 + self.modulo
 
         return PolyRing(h_coeffs, h_modulo)
 
     def __neg__(self):
-        '''
+        """
         Returns the additive inverse of the polynomial
         :return:
-        '''
+        """
         h_coeffs = self.coeffs.copy()
         h_modulo = 0
         h_modulo += self.modulo
@@ -170,11 +170,11 @@ class PolyRing:
         return PolyRing(h_coeffs, h_modulo)
 
     def __add__(self, other):
-        '''
+        """
         Compute the sum h of this polynomial f with another entry polynomial g modulo n.
         :param other polynomial g
         :return: polynomial h
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         m_d = max(len(self.coeffs), len(other.coeffs))
@@ -195,20 +195,20 @@ class PolyRing:
         return PolyRing(h_coeffs, h_modulo)
 
     def __lead__(self):
-        '''
+        """
         Find the leading term of the polynomial, e.g. f(x) = 3*x^2 + 1 -> c=3, d=2
         :return: c, d
-        '''
+        """
         d = self.degree
         c = self.coeffs[self.degree]
         return c, d
 
     def __scale__(self, a):
-        '''
+        """
         Computes the product a * f of the polynomial f and integer a
         :param a: int
         :return: a * f
-        '''
+        """
         assert (isinstance(a, int))
         hx = self.__copy__()
         hx.coeffs = [(a * i) % hx.modulo for i in hx.coeffs]
@@ -221,11 +221,11 @@ class PolyRing:
         return PolyRing(pop_zeros(self.coeffs), 0 + self.modulo)
 
     def __polyprod__(self, other):
-        '''
+        """
         Compute the product h of this polynomial f with the other polynomial g modulo n
         :param other:
         :return:
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         m_d = max(len(self.coeffs), len(other.coeffs))
@@ -247,12 +247,12 @@ class PolyRing:
         return hx
 
     def __longdiv__(self, other):
-        '''
+        """
         Compute the quotient q and remainder r of this polynomial f with divided by entry polynomial g!=0 modulo n,
         if deg(f) < deg(g) it returns q=0, r=f, NOTE: the modulo n must be prime
         :param other polynomial g
         :return: polynomials q, r s.t. f = q*g + r
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         assert (other != PolyRing([0], other.modulo))
@@ -292,11 +292,11 @@ class PolyRing:
         return qx, rx
 
     def __evaluate__(self, x0):
-        '''
+        """
         Calculate the value of the polynomial f at x0 modulo n
         :param x0:
         :return: f(x0) modulo n
-        '''
+        """
         assert (isinstance(x0, int))
         res = 0
         for d, c in list(enumerate(self.coeffs[0:self.degree + 1]))[::-1]:
@@ -308,11 +308,11 @@ class PolyRing:
         return res
 
     def __gcd__(self, other):
-        '''
+        """
         For polynomial f. Returns the gcd of the two polynomials.
         :param other: polynomial g
         :return: gcd(f, g)
-        '''
+        """
         assert (isinstance(other, PolyRing))
         # assert(self.degree >= other.degree)
 
@@ -330,11 +330,11 @@ class PolyRing:
         return b
 
     def __EEA__(self, other, monic=False):
-        '''
+        """
         Calculate the polynomial d = gcd(f, g) and the polynomials u, v s.t. this u*f + v*g = d modulo n
         :param other: polynomial g
         :return: gcd(f, g), u, v polynomials
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         if self == PolyRing([0], self.modulo) or other == PolyRing([0], self.modulo):
@@ -374,12 +374,12 @@ class PolyRing:
         return r0, s0, t0
 
     def __invert__(self, other):
-        '''
+        """
         Calculates the inverse of a polynomial with respect to modulo polynomial other
         and the integer ring
         :param: other - the modulo polynomial
         :return: f^-1 with resp. to modulo polynomial other in the integer ring
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         assert (other != PolyRing([0], self.modulo))
@@ -392,11 +392,11 @@ class PolyRing:
         return inv
 
     def __polyMod__(self, other):
-        '''
+        """
         Calculates the residue of this polynomial f modulo a polynomial g
         :param other: polynomial g
         :return: residue r
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (self.modulo == other.modulo)
         assert (other != PolyRing([0], self.modulo))
@@ -404,13 +404,13 @@ class PolyRing:
         return self.__longdiv__(other)[1]
 
     def __binExpPolyMod__(self, other, a):
-        '''
+        """
         Calculates for this polynomial f, some modulo polynomial g and a positive integer a
          (f(x))^a mod g(x)
         :param other: g(x) polynomial
         :param a: positive integer
         :return: polynomial h(x) = (f(x))^a mod g(x)
-        '''
+        """
         assert (isinstance(other, PolyRing))
         assert (isinstance(a, int))
         assert (a >= 0)
@@ -427,13 +427,13 @@ class PolyRing:
 
         while a > 0:
             # print(a)
-            # If a is odd,
+            # If an is odd,
             # multiply result with h
             if a % 2 == 1:
                 res = (res.__polyprod__(h)).__polyMod__(g)
                 res = res.__compress__()  # the computations on res makes the coefficient_lst unnecessarily long
 
-            # now a is even, half it and round down
+            # now an is even, half it and round down
             # and update h by squaring it
             a = a // 2
             h = (h.__polyprod__(h)).__polyMod__(g)
@@ -442,10 +442,10 @@ class PolyRing:
         return res
 
     def __findRoot__(self):
-        '''
+        """
         For a given finite univariate polynomial f(x) in Z/p, where p prime, calculate a root r s.t. f(r) = 0.
         :return: r, root of f or None if f has no root
-        '''
+        """
 
         done = False
         res = 0
@@ -507,11 +507,11 @@ class PolyRing:
         return res
 
     def __findAllRoots__(self):
-        '''
+        """
         For a given finite univariate polynomial f(x) in Z/p, where p prime, calculate all roots r_i s.t. f(r_i) = 0.
         For a polynomial of degree d, there are at least d roots counting multiplicity.
         :return: roots, a list of roots for f
-        '''
+        """
         assert (self != PolyRing([0], self.modulo))
 
         roots = []
@@ -531,28 +531,3 @@ class PolyRing:
                 assert (zero == PolyRing([0], fx.modulo))
 
         return roots
-
-
-PRIME = 113
-
-x = [1, 1]
-f_x = [1, 70, 89, 81, 96]
-f_x = f_x[::-1]
-obj_1 = PolyRing(f_x, PRIME)
-
-obj_2 = PolyRing(x, PRIME)
-
-a = [2, 2, 1, 1]
-a = PolyRing(a[::-1], 5)
-
-b = [3, 2, 3]
-b = PolyRing(b[::-1], 5)
-
-print(a.__gcd__(b))
-
-# print(obj_1.__gcd__(obj_2))
-
-print(obj_2.__binExpPolyMod__(obj_1, 43))
-
-print(obj_1.__findAllRoots__())
-

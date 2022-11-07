@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 from MandatoryAssignment1.A1.Mandatory1 import BinaryExponentiationWithoutRecursion as binExp
-from MandatoryAssingment3.MatrixHelper import RowReduceMatrixRowEchelonForm
+from MandatoryAssignment3.MatrixHelper import RowReduceMatrixRowEchelonForm
 
 
 def findJ(p):
