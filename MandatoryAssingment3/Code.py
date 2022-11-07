@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 from MandatoryAssignment1.A1.Mandatory1 import BinaryExponentiationWithoutRecursion as binExp
-from MandatoryAssingment3.test import rref_mod_n
+from MandatoryAssingment3.MatrixHelper import RowReduceMatrixRowEchelonForm
 
 
 def findJ(p):
@@ -319,42 +319,67 @@ def printMatrix(b):
         print(list(lmao), end="\n")
 
 
-def IndexCalculusAlgorithmj(p=2602163, alfa=1535637, B=30, g=2):
-    S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
+def IndexCalculusAlgorithm(p=2602163, alfa=1535637, B=30, g=2):
+    # Algorithm divided into two parts: finding linear congruences
+    # and trying to row reduce row echelon form
+    # output from "FindRowsBsmooth" returns rows random_X_s
+    # that we insert into the already implemented RowReduceMatrixRowEchelonForm
+    #  from Assignment 1
+    # Since not all systems is possible to rowreduce, we wrap the return into
+    # a try catch loop, this triggers a re - find new parameters if it fails.
 
-    # STEP 2
-    # collect m = n * c, rows. ( create matrix), c = 10
-    # Matrix transposed A^T
-    out = None
-    while out is None:
+    # if unique system is found, we solve system according to algorihtm
+    # spesification
+    S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
+    M = None
+    while M is None:
         try:
             while True:
-                out = rref_mod_n(random_X_s, p - 1)
-                a = np.array(out, dtype=int)
-                matrix = a.reshape(m, 11)
+                # Row Reduce Matrix to Row Echelon Form
+                # This was implemented in assignment 1
+                M = RowReduceMatrixRowEchelonForm(random_X_s, p - 1)
+                # Convert to numpy arr. for easy list comprehension later
+                M_numpyarr = np.array(M, dtype=int)
+                rowReduced = M_numpyarr.reshape(m, n + 1)  # Reshape 1D list to 2D
 
-                if matrix[0][-1] == 0:
+                # Check if system has unique solution -- else find new/more numbers b smooth
+                if rowReduced[0][-1] == 0:
                     S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
                 else:
-                    printMatrix(matrix)
+                    # print matrix before row reduced
+                    print(f"Linear system to solve: ")
+                    printMatrix(random_X_s)
+                    print()
+                    # Print matrix with unique solution
+                    print(f"Linear system on row reduced by gaussian elm. ")
+                    printMatrix(rowReduced)
                     while True:
+                        # find random valid y
                         y = random.randint(0, p - 1)
                         b = (pow(g, y, p) * alfa) % p
                         fac_ = prime_factors(b)
+                        # if b smooth, break => solve
                         if is_b_smooth(fac_, S_b):
+                            print(
+                                f"Found valid y: ({y}),\n\twhich is bsmooth with factors: \n\t\t({' + '.join([f'{y}^{x}' for x, y in zip(fac_, S_b)])}) mod {p}", end='\n')
+                            print()
                             break
-
+                        # Found valid y
                     # solve:
                     l = [0] * n
                     for i_s in range(len(S_b)):
                         l[i_s] = fac_.count(S_b[i_s])
-                    x_vals = findXi(matrix)
+                    x_vals = findXi(rowReduced)
                     x = 0
+                    print(f"Now, we want to sum and add each solution from the solved matrix, \n\tand multiply with "
+                          f"the corr. index from S_b :: minus the y value closed under mod p-1"
+                          f"\n\t\t({' + '.join([f'{x} * {y}' for x, y in zip(x_vals, l)])}) - {y}   mod {p-1}")
                     for x_i, l_i in zip(x_vals, l):
                         x += x_i * l_i  # (x_i**l_i)
                     x = (x - y) % (p - 1)
-
+                    print(f"After calc. x is found to be: {x}")
                     return x
+                # exceptions: row reduce failed, try with new parameters
         except:
             S_b, m, n, random_X_s = FindRowsBsmooth(B, p)
 
@@ -383,7 +408,6 @@ def FindRowsBsmooth(B, p):
             temp = l
             temp.append(x_s)
             random_X_s.append(temp)
-            # random_X_s.append((x_s, l))
     return S_b, m, n, random_X_s
 
 
@@ -399,11 +423,12 @@ def runTaskThree():
     # should be 2116767
     while True:
 
-        x = IndexCalculusAlgorithmj()
+        x = IndexCalculusAlgorithm()
         if x is not None:
             x = int(x)
             if pow(2, x, 2602163) == 1535637:
-                print(f"Found correct x: {x}")
+                print(f"Now, check if correct solution: 2^x ≡ 1535637 ?=> 2^{x} mod 2602163 is: {pow(2, x, 2602163)}")
+                print(f"We found correct X: {x}")
                 break
             else:
                 print(f"Wrong: got x ==  {x}", end="\n")

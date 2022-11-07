@@ -126,10 +126,8 @@ def rref_mod_helper(x, modulus):
     return numerator * mod_inverse(denominator, modulus) % modulus
 
 
-def rref_mod_n(matrix, n=2):
+def RowReduceMatrixRowEchelonForm(matrix, n=2):
     """
-    ~ Borrowed ~ from https://stackoverflow.com/questions/31190182/sympy-solving-matrices-in-a-finite-field
-
     Given a matrix and a modulus n (default n=2), row reduce mod n
     """
     # Move data into a sympy Matrix() object
