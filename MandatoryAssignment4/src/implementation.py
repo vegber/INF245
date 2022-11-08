@@ -3,6 +3,8 @@
 
 import numpy as np
 from math import log, gcd
+
+import sympy
 from sympy import Poly, symbols, GF, invert, isprime
 from sympy.abc import x
 import sys
@@ -30,14 +32,29 @@ def taskOne():
     #   L_g   = L(3,3)
     #   L_phi = L(3,3)
 
-    #                0   1    2    3    4    5    6    7    8    9   10
-    f   = np.array([-1,  1,  -1,   0,   1,   0,   1,   0,   1,   0,  -1][::-1], dtype=int)
-    g   = np.array([-1,  1,   0,   0,   1,   1,   0,   0,  -1,   0,  -1][::-1], dtype=int)
-    m   = np.array([-1,  0,   0,  -1,   1,   0,   0,   0,   1,   1,  -1][::-1], dtype=int)
-    phi = np.array([ 1,  0,   1,  -1,   1,   0,  -1,  -1,   0,   0,   0][::-1],  dtype=int)
-    f_inv = poly_inv(f, g, N)
-    print(f_inv)
+    #                    0   1    2    3    4    5    6    7    8    9   10
+    f = np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int)
+    g = np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
+    m = np.array([-1, 0, 0, -1, 1, 0, 0, 0, 1, 1, -1][::-1], dtype=int)
+    phi = np.array([1, 0, 1, -1, 1, 0, -1, -1, 0, 0, 0][::-1], dtype=int)
+    irr_poly = np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int)
+    # f_inv = poly_inv(f, irr_poly, p)
+    # print(f_inv)
     # f & g private key
+
+    # Test
+    #
+    a = np.array([1, 0, 1][::-1], dtype=int)
+    b = np.array([-1, 0, 0, 0, 0, 1][::-1], dtype=int)
+    inv = np.flip(poly_inv(a, b, 3))
+    for x in range(len(inv)):
+        print(f"{inv[x]}x^{x}", end=" ")
+    print()
+    x = symbols('x')
+    aa = Poly(a, x)
+    invv = Poly(inv, x)
+    print(aa.mul(invv))
+
 
 
 def poly_inv(poly_in, poly_I, poly_mod):
