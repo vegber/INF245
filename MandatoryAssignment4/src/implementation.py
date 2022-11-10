@@ -1,13 +1,11 @@
 ###
 # NTRU Assignment INF 245
 
+import sys
+from math import log
 import numpy as np
-from math import log, gcd
-
-import sympy
 from sympy import Poly, symbols, GF, invert, isprime
 from sympy.abc import x
-import sys
 
 
 def taskOne():
@@ -31,7 +29,12 @@ def taskOne():
     #   L_f   = L(4, 3)
     #   L_g   = L(3,3)
     #   L_phi = L(3,3)
-    x = symbols('x')
+
+    print()
+    print("=" * 120)
+    print(f"TASK ONE")
+    print("=" * 120)
+    print()
 
     f = np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int)
     g = np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
@@ -39,7 +42,7 @@ def taskOne():
     phi = np.array([1, 0, 1, -1, 1, 0, -1, -1, 0, 0, 0][::-1], dtype=int)
 
     irr_poly = np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int)
-    test = Poly(irr_poly, x)
+    resClass = Poly(irr_poly, x)
     # f_inv = poly_inv(f, irr_poly, p)
     # print(f_inv)
     # f & g private key
@@ -48,22 +51,84 @@ def taskOne():
     # wikipedia
     forelesning_f = np.array([-1, 1, 1, 0, -1, 0, 1, 0, 0, 1, -1][::-1], dtype=int)
     forelesning_g = np.array([-1, 0, 1, 1, 0, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
-    forelesning_g = Poly(forelesning_g, x)
-    f_inverse_mod_p = np.flip(poly_inv(forelesning_f, irr_poly, p))
-    print_polynomial(f_inverse_mod_p, p)
-    print()
-    f_inverse_mod_q = Poly(poly_inv(forelesning_f, irr_poly, q), x)
+    forelesning_m = np.array([-1, 0, 0, 1, -1, 0, 0, 0, -1, 1, 1][::-1], dtype=int)
+    forelesning_phi = np.array([-1, 0, 1, 1, 1, -1, 0, -1, 0, 0, 0][::-1], dtype=int)
 
-    print(f_inverse_mod_q)
+    forelesning_f = Poly(f, x)
+    forelesning_g = Poly(g, x)
+    f_inverse_mod_p = Poly(poly_inv(f, irr_poly, p), x)
+    f_inverse_mod_q = Poly(poly_inv(f, irr_poly, q), x)
+    forelesning_m = Poly(m, x)
+    forelesning_phi = Poly(phi, x)
+
+    print(f"fp invers {f_inverse_mod_p}")
+    print(f"fq invers {f_inverse_mod_q}")
+    print()
     #####
     # Create public key
     # h = p*f_q * g
+    pubPoly = createPublicKey(f_inverse_mod_q, p, forelesning_g, q, resClass)
+    print(f"Public key: {pubPoly}")
 
-    p_f_q = f_inverse_mod_q.__mul__(p)
+    # Ciphertext
+    # e = phi * h + m (mod q)
+    ciphertext = createCipherText(pubPoly, forelesning_m, forelesning_phi, q, resClass)
+    print(f"Ciphertext: {ciphertext}")
 
-    h = p_f_q.__mul__(forelesning_g)
-    var = h.__mod__(test)
-    print(var)
+    print()
+    print("=" * 120)
+    print(f"TASK TWO")
+    print("=" * 120)
+    print()
+
+    ciphertext = Poly(np.array([9, 28, 18, 20, 3, 24, 25, 28, 10, 1, 26][::-1], dtype=int), x)
+    plaintext = decryptMessage(forelesning_f, ciphertext, f_inverse_mod_p, q, p, resClass)
+    print(f"plaintext: {Poly(plaintext, x)}")
+
+
+def decryptMessage(f, c, fInvP, q, p, resClass):
+    a = f.__mul__(c).__mod__(resClass)
+    a = Poly(closeUnderMod(np.array(a.all_coeffs()), q), x)
+    plaintext = a.__mul__(fInvP).__mod__(resClass)
+    plaintext = Poly((closeUnderMod(np.array(plaintext.all_coeffs(), dtype=int), p)), x)
+    return plaintext
+
+
+def createCipherText(pubPol, message, phi, q, residueClass):
+    """
+    :param pubPol:
+    :param message:
+    :param phi:
+    :param q:
+    :param residueClass:
+    :return: e = r * h + m mod(q)
+    """
+    rh = phi.__mul__(pubPol).__mod__(residueClass)
+    return Poly(closeUnderMod(np.array(rh.__add__(message).all_coeffs(), dtype=int), q, False), x)
+
+
+def createPublicKey(fInverseQ, p, g, q, residueClass):
+    p_f_q = fInverseQ.__mul__(p)
+    h = p_f_q.__mul__(g)
+    var = h.__mod__(residueClass)
+    test = closeUnderMod(np.array(var.all_coeffs(), dtype=int), q)
+    return Poly(test, x)
+
+
+def closeUnderMod(arr, n: int, intervall=True):
+    if intervall:
+        lower_bound, upper_bound = -n // 2, n // 2
+        coeffs_under_mod = []
+        for org in arr:
+            x = org % n
+            if x <= upper_bound:
+                coeffs_under_mod.append(x)
+            else:
+                x = x - n
+                coeffs_under_mod.append(x)
+    else:
+        return [x % n for x in arr]
+    return np.array(coeffs_under_mod)
 
 
 def print_polynomial(p, mod):
@@ -84,7 +149,6 @@ def poly_inv(poly_in, poly_I, poly_mod):
     Either an empty array if the inverse cannot be found, or the inverse of the
     polynomial poly_in as an array of coefficients.
     """
-    x = symbols('x')
     Ppoly_I = Poly(poly_I, x)
     Npoly_I = len(Ppoly_I.all_coeffs())
     if isprime(poly_mod):
@@ -128,4 +192,6 @@ def padArr(A_in, A_out_size):
 
 
 if __name__ == '__main__':
+    global x
+    x = symbols('x')
     taskOne()
