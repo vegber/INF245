@@ -31,30 +31,45 @@ def taskOne():
     #   L_f   = L(4, 3)
     #   L_g   = L(3,3)
     #   L_phi = L(3,3)
+    x = symbols('x')
 
-    #                    0   1    2    3    4    5    6    7    8    9   10
     f = np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int)
     g = np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
     m = np.array([-1, 0, 0, -1, 1, 0, 0, 0, 1, 1, -1][::-1], dtype=int)
     phi = np.array([1, 0, 1, -1, 1, 0, -1, -1, 0, 0, 0][::-1], dtype=int)
+
     irr_poly = np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int)
+    test = Poly(irr_poly, x)
     # f_inv = poly_inv(f, irr_poly, p)
     # print(f_inv)
     # f & g private key
 
     # Test
-    #
-    a = np.array([1, 0, 1][::-1], dtype=int)
-    b = np.array([-1, 0, 0, 0, 0, 1][::-1], dtype=int)
-    inv = np.flip(poly_inv(a, b, 3))
-    for x in range(len(inv)):
-        print(f"{inv[x]}x^{x}", end=" ")
+    # wikipedia
+    forelesning_f = np.array([-1, 1, 1, 0, -1, 0, 1, 0, 0, 1, -1][::-1], dtype=int)
+    forelesning_g = np.array([-1, 0, 1, 1, 0, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
+    forelesning_g = Poly(forelesning_g, x)
+    f_inverse_mod_p = np.flip(poly_inv(forelesning_f, irr_poly, p))
+    print_polynomial(f_inverse_mod_p, p)
     print()
-    x = symbols('x')
-    aa = Poly(a, x)
-    invv = Poly(inv, x)
-    print(aa.mul(invv))
+    f_inverse_mod_q = Poly(poly_inv(forelesning_f, irr_poly, q), x)
 
+    print(f_inverse_mod_q)
+    #####
+    # Create public key
+    # h = p*f_q * g
+
+    p_f_q = f_inverse_mod_q.__mul__(p)
+
+    h = p_f_q.__mul__(forelesning_g)
+    var = h.__mod__(test)
+    print(var)
+
+
+def print_polynomial(p, mod):
+    for x in range(len(p)):
+        print(f"{p[x]}x^{x} + ", end=" ")
+    print(f" mod {mod}", end=" ")
 
 
 def poly_inv(poly_in, poly_I, poly_mod):
