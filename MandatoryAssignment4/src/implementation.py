@@ -1,14 +1,15 @@
 ###
 # NTRU Assignment INF 245
-
+import math
 import sys
 from math import log
+
 import numpy as np
-from sympy import Poly, symbols, GF, invert, isprime
+from sympy import Poly, symbols, GF, invert, isprime, gcdex, div
 from sympy.abc import x
 
 
-def taskOne():
+def ntruEncDec():
     """
     1.1)
         Compute the inversion of
@@ -31,35 +32,20 @@ def taskOne():
     #   L_phi = L(3,3)
 
     print()
-    print("=" * 120)
-    print(f"TASK ONE")
-    print("=" * 120)
+    print("=" * 40)
+    print(f"\t\t\t\tTASK ONE")
+    print("=" * 40)
     print()
 
-    f = np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int)
-    g = np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
-    m = np.array([-1, 0, 0, -1, 1, 0, 0, 0, 1, 1, -1][::-1], dtype=int)
-    phi = np.array([1, 0, 1, -1, 1, 0, -1, -1, 0, 0, 0][::-1], dtype=int)
+    f = Poly(np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int), x)
+    g = Poly(np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int), x)
+    m = Poly(np.array([-1, 0, 0, -1, 1, 0, 0, 0, 1, 1, -1][::-1], dtype=int), x)
+    phi = Poly(np.array([1, 0, 1, -1, 1, 0, -1, -1, 0, 0, 0][::-1], dtype=int), x)
+    # residue class, x^n - 1
+    resClass = Poly(np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int), x)
 
-    irr_poly = np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int)
-    resClass = Poly(irr_poly, x)
-    # f_inv = poly_inv(f, irr_poly, p)
-    # print(f_inv)
-    # f & g private key
-
-    # Test
-    # wikipedia
-    forelesning_f = np.array([-1, 1, 1, 0, -1, 0, 1, 0, 0, 1, -1][::-1], dtype=int)
-    forelesning_g = np.array([-1, 0, 1, 1, 0, 1, 0, 0, -1, 0, -1][::-1], dtype=int)
-    forelesning_m = np.array([-1, 0, 0, 1, -1, 0, 0, 0, -1, 1, 1][::-1], dtype=int)
-    forelesning_phi = np.array([-1, 0, 1, 1, 1, -1, 0, -1, 0, 0, 0][::-1], dtype=int)
-
-    forelesning_f = Poly(f, x)
-    forelesning_g = Poly(g, x)
-    f_inverse_mod_p = Poly(poly_inv(f, irr_poly, p), x)
-    f_inverse_mod_q = Poly(poly_inv(f, irr_poly, q), x)
-    forelesning_m = Poly(m, x)
-    forelesning_phi = Poly(phi, x)
+    f_inverse_mod_p = Poly(polyInverse(f, resClass, p), x)
+    f_inverse_mod_q = Poly(polyInverse(f, resClass, q), x)
 
     print(f"fp invers {f_inverse_mod_p}")
     print(f"fq invers {f_inverse_mod_q}")
@@ -67,22 +53,22 @@ def taskOne():
     #####
     # Create public key
     # h = p*f_q * g
-    pubPoly = createPublicKey(f_inverse_mod_q, p, forelesning_g, q, resClass)
-    print(f"Public key: {pubPoly}")
+    pubPoly = createPublicKey(f_inverse_mod_q, p, g, q, resClass)
+    print(f"Public key: {pubPoly.all_coeffs()}")
 
     # Ciphertext
     # e = phi * h + m (mod q)
-    ciphertext = createCipherText(pubPoly, forelesning_m, forelesning_phi, q, resClass)
+    ciphertext = createCipherText(pubPoly, m, phi, q, resClass)
     print(f"Ciphertext: {ciphertext}")
 
     print()
-    print("=" * 120)
-    print(f"TASK TWO")
-    print("=" * 120)
+    print("=" * 40)
+    print(f"\t\t\t\tTASK TWO")
+    print("=" * 40)
     print()
 
     ciphertext = Poly(np.array([9, 28, 18, 20, 3, 24, 25, 28, 10, 1, 26][::-1], dtype=int), x)
-    plaintext = decryptMessage(forelesning_f, ciphertext, f_inverse_mod_p, q, p, resClass)
+    plaintext = decryptMessage(f, ciphertext, f_inverse_mod_p, q, p, resClass)
     print(f"plaintext: {Poly(plaintext, x)}")
 
 
@@ -131,13 +117,13 @@ def closeUnderMod(arr, n: int, intervall=True):
     return np.array(coeffs_under_mod)
 
 
-def print_polynomial(p, mod):
-    for x in range(len(p)):
-        print(f"{p[x]}x^{x} + ", end=" ")
+def printPolynomial(p, mod):
+    for el in range(len(p)):
+        print(f"{p[el]}x^{el} + ", end=" ")
     print(f" mod {mod}", end=" ")
 
 
-def poly_inv(poly_in, poly_I, poly_mod):
+def polyInverse(poly_in, poly_I, poly_mod):
     """
     Find the inverse of the polynomial poly_in in the Galois filed GF(poly_mod)
     i.e. the inverse in
@@ -191,7 +177,96 @@ def padArr(A_in, A_out_size):
     return np.pad(A_in, (A_out_size - len(A_in), 0), constant_values=0)
 
 
+def rationalsToZZ(u, modolus):
+    # denominator must be co - prime with Q!
+    assert math.gcd(u.all_coeffs()[0].as_numer_denom()[1], modolus) == 1
+    liz = []
+    for el in u.all_coeffs():
+        numerator = el.as_numer_denom()[0]
+        denominator = el.as_numer_denom()[1]
+        liz.append(numerator * pow(denominator, -1, modolus) % modolus)
+    return liz
+
+
+def computePolynomials(cipher_texts, u, q, resClass):
+    cij = []
+    for ci in range(len(cipher_texts)):
+        for cj in range(ci + 1, len(cipher_texts)):
+            sub = cipher_texts[ci].__sub__(cipher_texts[cj])
+            mul = sub.__mul__(u).__mod__(resClass)
+            cij.append(Poly(closeUnderMod(np.array(mul.all_coeffs(), dtype=int), q), x))
+    return cij
+
+
+def computeC(cij, N):
+    X = Poly([1] * N, x)
+    candidates = []
+    for c in range(len(cij)):
+        for i in range(-2, 3, 1):
+            tmp = div(cij[c], Poly([1, -1], x), domain='ZZ')[0]
+            tmp = tmp.add(X.__mul__(i))
+            candidates.append(tmp)
+    for i in range(len(candidates)):
+        for j in range(i + 1, len(candidates)):
+            res = candidates[i].sub(candidates[j]).all_coeffs()
+            if len([*filter(lambda x: abs(x) <= 2, res)]) == len(res):
+                print(buildPhi(candidates[i], candidates[j]))
+
+    return 0, 0
+
+
+def multipleEncSameMessage():
+    N, p, q = 11, 3, 32
+
+    cipher_texts = [
+        Poly(np.array([15, 24, 0, 30, 5, 24, 5, 28, 20, 29, 10], dtype=int), x),
+        Poly(np.array([20, 24, 12, 27, 19, 3, 3, 23, 28, 2, 29], dtype=int), x),
+        Poly(np.array([0, 20, 4, 0, 30, 30, 15, 7, 4, 19, 29], dtype=int), x),
+        Poly(np.array([14, 8, 20, 3, 11, 29, 29, 9, 6, 28, 1], dtype=int), x)]
+
+    f = Poly(np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int), x)
+    g = Poly(np.array([-1, 1, 0, 0, 1, 1, 0, 0, -1, 0, -1][::-1], dtype=int), x)
+    resClass = Poly(np.array([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1][::-1], dtype=int), x)
+    fInvP = Poly(polyInverse(f, resClass, p), x)
+    fInvQ = Poly(polyInverse(f, resClass, q), x)
+    publicKey = createPublicKey(fInvQ, p, g, q, resClass)
+    u, v, gcd = gcdex(publicKey, resClass)
+
+    u = Poly(rationalsToZZ(u, q), x)
+
+    cij = computePolynomials(cipher_texts, u, q, resClass)
+
+    # find c
+    phi_1, phi_2 = computeC(cij, N)
+    pass
+
+
+def buildPhi(phi_1, phi_2):
+    phi_1 = phi_1.all_coeffs()
+    print(phi_2)
+    phi_2 = phi_2.all_coeffs()
+    lookup = {
+        2: [1, -1],
+        1: [1, 0],  # or 0, -1
+        0: [0, 0],
+        -1: [-1, 0],  # 0, 1
+        -2: [-1, 1]}
+    for i in range(len(phi_2)):
+        lookup_val = (phi_1[i] - phi_2[i])
+        if lookup_val < -2 or lookup_val > 2: return
+        if lookup_val == 0: continue
+        tmp_A = lookup[lookup_val][0]
+        tmp_B = lookup[lookup_val][1]
+
+        phi_1[i] = tmp_A
+        phi_2[i] = tmp_B
+    print("-"*40)
+    print(phi_1)
+    print(phi_2)
+
+
 if __name__ == '__main__':
     global x
     x = symbols('x')
-    taskOne()
+    # ntruEncDec()
+    multipleEncSameMessage()
