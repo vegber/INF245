@@ -5,7 +5,7 @@ import sys
 from math import log
 
 import numpy as np
-from sympy import Poly, symbols, GF, invert, isprime, gcdex, div, pdiv
+from sympy import Poly, symbols, GF, invert, isprime, gcdex, div, pdiv, pretty
 from sympy.abc import x
 
 
@@ -237,24 +237,6 @@ def computeC(cij, N, q, class_residue, d):
     return phi_S
 
 
-def dummy(phi_s, cipher_texts, publicKey, resClass, q):
-    print()
-    print(f"I found: {len(phi_s)}: pairs")
-    print()
-    for phi in range(len(phi_s)):
-        for cip in cipher_texts:
-            tmp = Poly(phi_s[phi][0], x).__mul__(publicKey).__mod__(resClass)
-            tmp = cip.__sub__(tmp)
-            plaintext = Poly(closeUnderMod(np.array(tmp.all_coeffs(), dtype=int), q, False), x)
-            print(f"plaintext_i phi2: {plaintext.all_coeffs()}")
-
-            tmp2 = Poly(phi_s[phi][1], x).__mul__(publicKey).__mod__(resClass)
-            tmp2 = cip.__sub__(tmp2)
-            plaintext2 = Poly(closeUnderMod(np.array(tmp2.all_coeffs(), dtype=int), q, False), x)
-            print(f"plaintext_i phi 1: {plaintext2.all_coeffs()}", end="\n")
-            print()
-
-
 def multipleEncSameMessage():
     N, p, q = 11, 3, 32
 
@@ -274,39 +256,54 @@ def multipleEncSameMessage():
     u = Poly(rationalsToZZ(u, q), x)
     cij = computePolynomials(cipher_texts, u, q, resClass)
 
+    print(f"="*40)
+    print(f"Task: Multiple encryption of the same message ")
+    print(f"="*40)
+    print()
+    print(f"I try to find valid c s.t cij/(X-1)+tij(X^N-1+X^N-2...+1) has coeff. ≤ 2 : ")
+    print(".\n"*3)
     # find c
     phi_s = computeC(cij, N, q, resClass, d=3)
+    print(f"Found {len(phi_s[0])} Φ that met critera L(d, d):\n\t {[y for y in phi_s[0]]}")
 
     assert phi_s[0][0] and phi_s[0][1] is not None
 
     phi_1, phi_2 = Poly(phi_s[0][0], x), Poly(phi_s[0][1], x)
     # decrypt
     # m = ei - øi*h mod q
-    c = 1
+    plaintext_phi_set = {}
     for e_i in cipher_texts:
-        print(f"round: {c}")
-        print()
-        tmp = phi_2.__mul__(publicKey).__mod__(resClass)
-        tmp = e_i.__sub__(tmp)
-        plaintext = Poly(closeUnderMod(np.array(tmp.all_coeffs(), dtype=int), q, intervall=True), x)
-        print(f"plaintext_i phi2: {plaintext.all_coeffs()}")
-        print(
-            f"create cipher: {createCipherText(publicKey, plaintext, phi_2, q, resClass).all_coeffs()}: should be {e_i.all_coeffs()}")
-
-        print("-" * 40)
-
         tmp2 = phi_1.__mul__(publicKey).__mod__(resClass)
         tmp2 = e_i.__sub__(tmp2)
-        plaintext2 = Poly(closeUnderMod(np.array(tmp2.all_coeffs(), dtype=int), q, intervall=True), x)
-        print(f"plaintext_i phi 1: {plaintext2.all_coeffs()}", end="\n")
-        print(
-            f"create cipher: {createCipherText(publicKey, plaintext, phi_1, q, resClass).all_coeffs()}: should be {e_i.all_coeffs()}")
+        plaintext1 = Poly(closeUnderMod(np.array(tmp2.all_coeffs(), dtype=int), q, intervall=True), x)
 
-        print()
-        print(f"=" * 40)
-        print()
-        c += 1
-    pass
+        tmp = phi_2.__mul__(publicKey).__mod__(resClass)
+        tmp = e_i.__sub__(tmp)
+        plaintext2 = Poly(closeUnderMod(np.array(tmp.all_coeffs(), dtype=int), q, intervall=True), x)
+
+        plaintext_phi_set.setdefault(str(plaintext1.all_coeffs()), []).append('phi1')
+        plaintext_phi_set.setdefault(str(plaintext2.all_coeffs()), []).append('phi2')
+
+    plaintext = max(plaintext_phi_set, key=lambda x: len(plaintext_phi_set[x]))
+    print(f"Tried to decrypt all cipher texts, found {len(plaintext_phi_set[plaintext])} plaintext that match each "
+          f"other: ", end="\n")
+
+    plaintext = plaintext.strip("[").strip("]")
+    plaintext = (list(map(int, ''.join(plaintext).split(", "))))
+    polynomial_plaintext = (Poly(plaintext, x))
+    print(f"\tPlaintext is then: {PrintPolynomial(polynomial_plaintext.all_coeffs())}")
+
+
+def PrintPolynomial(h_x: list):
+    out = ""
+    for i, e in enumerate(h_x):
+        if i == len(h_x) - 1:
+            out += str(e)
+        elif e == 0:
+            continue
+        else:
+            out += f"{e}x^{(len(h_x) - 1) - i} + "
+    return out
 
 
 def buildPhi(phi, N):
