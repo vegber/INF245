@@ -32,9 +32,9 @@ def ntruEncDec():
     #   L_phi = L(3,3)
 
     print()
-    print("=" * 40)
+    print("=" * 45)
     print(f"\t\t\t\tTASK ONE")
-    print("=" * 40)
+    print("=" * 45)
     print()
 
     f = Poly(np.array([-1, 1, -1, 0, 1, 0, 1, 0, 1, 0, -1][::-1], dtype=int), x)
@@ -49,30 +49,42 @@ def ntruEncDec():
 
     print(f"fp invers {f_inverse_mod_p}")
     print(f"fq invers {f_inverse_mod_q}")
-    print()
     #####
     # Create public key
     # h = p*f_q * g
     pubPoly = createPublicKey(f_inverse_mod_q, p, g, q, resClass)
-    print(f"Public key: {pubPoly.all_coeffs()}")
+    print(f"Public key: {pubPoly}")
+    print()
 
     # Ciphertext
-    # e = phi * h + m (mod q)
+    # e = phi * h + m
     ciphertext = createCipherText(pubPoly, m, phi, q, resClass)
     print(f"Ciphertext: {ciphertext}")
 
     print()
-    print("=" * 40)
+    print("=" * 45)
     print(f"\t\t\t\tTASK TWO")
-    print("=" * 40)
+    print("=" * 45)
     print()
 
     ciphertext = Poly(np.array([9, 28, 18, 20, 3, 24, 25, 28, 10, 1, 26][::-1], dtype=int), x)
+    print(f"Ciphertext: {ciphertext}")
     plaintext = decryptMessage(f, ciphertext, f_inverse_mod_p, q, p, resClass)
-    print(f"plaintext: {Poly(plaintext, x)}")
+    print(f"Plaintext: {Poly(plaintext, x)}")
 
 
 def decryptMessage(f, c, fInvP, q, p, resClass):
+    """
+    To decrypt one computes
+        a = f * e (mod p)
+    :param f:
+    :param c:
+    :param fInvP:
+    :param q:
+    :param p:
+    :param resClass:
+    :return:
+    """
     a = f.__mul__(c).__mod__(resClass)
     a = Poly(closeUnderMod(np.array(a.all_coeffs()), q), x)
     plaintext = a.__mul__(fInvP).__mod__(resClass)
@@ -82,6 +94,8 @@ def decryptMessage(f, c, fInvP, q, p, resClass):
 
 def createCipherText(pubPol, message, phi, q, residueClass):
     """
+    Compute cipher text:
+        e = Φ * h + m mod q
     :param pubPol:
     :param message:
     :param phi:
@@ -101,9 +115,18 @@ def createPublicKey(fInverseQ, p, g, q, residueClass):
     return Poly(test, x)
 
 
-def closeUnderMod(arr, n: int, intervall=True, specialCase=False):
+def closeUnderMod(arr, n: int, interval=True, specialCase=False):
+    """
+    Function to reduce input arr. under mod n.
+    Functionality, to close under mod in interval, i.e [-q/2, q/2)
+    :param arr:
+    :param n:
+    :param interval:
+    :param specialCase:
+    :return:
+    """
     coeffs_under_mod = []
-    if intervall:
+    if interval:
         lower_bound, upper_bound = -n // 2, n // 2
         for org in arr:
             x = org % n
@@ -113,7 +136,6 @@ def closeUnderMod(arr, n: int, intervall=True, specialCase=False):
                 x = x - n
                 coeffs_under_mod.append(x)
     elif specialCase:
-        lower_bound, upper_bound = -n // 2, n // 2
         for org in arr:
             if org in range(-1, n + 1):
                 coeffs_under_mod.append(org)
@@ -256,12 +278,16 @@ def multipleEncSameMessage():
     u = Poly(rationalsToZZ(u, q), x)
     cij = computePolynomials(cipher_texts, u, q, resClass)
 
-    print(f"="*40)
-    print(f"Task: Multiple encryption of the same message ")
-    print(f"="*40)
     print()
+    print(f"="*45)
+    print(f"Task: Multiple encryption of the same message ")
+    print(f"="*45)
+    print()
+    print(f"Found, u, from gcd(h, x^N-1) : {u}")
+    print(f"Find poly cij = (ei - ej) * u (mod q) deg < N & coef in range (-q/2, q/2]")
     print(f"I try to find valid c s.t cij/(X-1)+tij(X^N-1+X^N-2...+1) has coeff. ≤ 2 : ")
-    print(".\n"*3)
+    print(f"From coef. of phi(i) - phi(j) -- apply rules ")
+    print("\n")
     # find c
     phi_s = computeC(cij, N, q, resClass, d=3)
     print(f"Found {len(phi_s[0])} Φ that met critera L(d, d):\n\t {[y for y in phi_s[0]]}")
@@ -275,35 +301,21 @@ def multipleEncSameMessage():
     for e_i in cipher_texts:
         tmp2 = phi_1.__mul__(publicKey).__mod__(resClass)
         tmp2 = e_i.__sub__(tmp2)
-        plaintext1 = Poly(closeUnderMod(np.array(tmp2.all_coeffs(), dtype=int), q, intervall=True), x)
+        plaintext1 = Poly(closeUnderMod(np.array(tmp2.all_coeffs(), dtype=int), q, interval=True), x)
 
         tmp = phi_2.__mul__(publicKey).__mod__(resClass)
         tmp = e_i.__sub__(tmp)
-        plaintext2 = Poly(closeUnderMod(np.array(tmp.all_coeffs(), dtype=int), q, intervall=True), x)
+        plaintext2 = Poly(closeUnderMod(np.array(tmp.all_coeffs(), dtype=int), q, interval=True), x)
 
         plaintext_phi_set.setdefault(str(plaintext1.all_coeffs()), []).append('phi1')
         plaintext_phi_set.setdefault(str(plaintext2.all_coeffs()), []).append('phi2')
-
     plaintext = max(plaintext_phi_set, key=lambda x: len(plaintext_phi_set[x]))
-    print(f"Tried to decrypt all cipher texts, found {len(plaintext_phi_set[plaintext])} plaintext that match each "
-          f"other: ", end="\n")
+    print("Decrypt ciphertext, with corresponding phi: ")
 
     plaintext = plaintext.strip("[").strip("]")
     plaintext = (list(map(int, ''.join(plaintext).split(", "))))
     polynomial_plaintext = (Poly(plaintext, x))
-    print(f"\tPlaintext is then: {PrintPolynomial(polynomial_plaintext.all_coeffs())}")
-
-
-def PrintPolynomial(h_x: list):
-    out = ""
-    for i, e in enumerate(h_x):
-        if i == len(h_x) - 1:
-            out += str(e)
-        elif e == 0:
-            continue
-        else:
-            out += f"{e}x^{(len(h_x) - 1) - i} + "
-    return out
+    print(f"\tPlaintext: {polynomial_plaintext}")
 
 
 def buildPhi(phi, N):
