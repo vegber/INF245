@@ -100,11 +100,9 @@ def drivercodetask3(q=905765673186944881352668387379493810404306452479,
     p = (s * q + 1) * 99
     h = 1
     escape_local_mimima = 1
-    stuck_in_bit_size = (0,0)
+    stuck_in_bit_size = (0, 0)
     while p.bit_length() < bit_length:
         tmp = int(2 * h * q * s + 1)
-        if random.randint(0, 10) > 2:
-            print(tmp.bit_length())
         if pocklington(tmp):
             h = 1
             stuck_in_bit_size = tmp.bit_length(), stuck_in_bit_size[1]
@@ -116,11 +114,20 @@ def drivercodetask3(q=905765673186944881352668387379493810404306452479,
             p = tmp
             continue
         h += 1
-    return p
+    return p, q
 
 
-a = drivercodetask3()
-print(f"number  was: {a} with length: {a.bit_length()}")
-# print(f"Found 160 bit prime: {driverCode()}")
-# print(f"Found 256 bit prime:  {driverCode(q1=4994460703, bit_length=256)}")
+def recoverG(p, q):
+    while True:
+        r = random.randrange(1, p)
+        g = binexp(r, (p-1)//q, p)
+        if g != 1:
+            return g
+
+
+p, q = drivercodetask3()
+print(f"number  was: {p} with length: {p.bit_length()}")
+print(f"Recovered G as {recoverG(p, q)}")
+print(f"Found 160 bit prime: {driverCode()}")
+print(f"Found 256 bit prime:  {driverCode(q1=4994460703, bit_length=256)}")
 # print(f"Found 512 bit prime: {drivercodetask3()}")
